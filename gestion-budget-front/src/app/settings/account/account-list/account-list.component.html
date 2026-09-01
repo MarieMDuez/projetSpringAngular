@@ -1,0 +1,48 @@
+<div class="account-container">
+  <app-account-form></app-account-form>
+
+  <div class="settings-divider"></div>
+
+
+  <div class="accounts-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (account of accounts(); track account.id) {
+    <div class="account-item-row" [class.inactive-row]="!account.isActive" cdkDrag>
+
+      @if (account.isActive) {
+      <span class="drag-handle" cdkDragHandle>☰</span>
+      } @else {
+
+      <span class="drag-handle-placeholder"></span>
+      }
+      <div class="account-info-block">
+        <span class="account-name-text">
+          {{ account.label }}
+          @if (!account.isActive) { <span class="text-muted text-small">(Archivé)</span> }
+        </span>
+        <span class="account-balance-badge">
+          {{ account.initialBalance | currency:'EUR':'symbol':'1.2-2' }}
+        </span>
+      </div>
+
+      <div class="account-item-actions">
+        @if (account.isActive) {
+        @if (account.isDefault) {
+        <span class="badge badge-default-active" title="Compte principal sélectionné">⭐ Principal</span>
+        } @else {
+        <button type="button" (click)="toggleAccountByDefault(account)" class="btn-text-action">
+          Passer en principal
+        </button>
+        }
+        <button type="button" class="btn-icon btn-edit" (click)="onEdit(account)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon btn-delete" (click)="onDelete(account)"
+          title="Supprimer le compte">🗑️</button>
+        } @else {
+        <span class="text-muted text-small">—</span>
+        }
+      </div>
+    </div>
+    } @empty {
+    <p class="text-muted text-small">Aucun compte disponible pour le moment.</p>
+    }
+  </div>
+</div>

@@ -1,0 +1,108 @@
+<div class="feature-container">
+    <h2>💸 Historique des transactions</h2>
+
+
+    <div class="table-container">
+
+        <table class="transaction-table">
+            <caption>Liste des transactions</caption>
+            <thead>
+
+                <tr>
+                    <th>Date</th>
+                    <th>Compte</th>
+                    <th>Moyen de Paiement</th>
+                    <th>Catégorie</th>
+                    <th>Description</th>
+                    <th class="text-right">Débit (-)</th>
+                    <th class="text-right">Crédit (+)</th>
+                    <th>Réc.</th>
+                    <th class="text-center">Pointée</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+
+
+            </thead>
+
+            <tbody>
+                @for (transaction of transactionService.filteredTransactionsSignal(); track transaction.id) {
+                <tr [class.checked-row]="transaction.isChecked">
+
+                    <td>{{ transaction.emissionDate }}</td>
+
+
+                    <td>
+                        <span class="badge badge-outline">
+                            {{ (accountService.allAccounts() | findById: transaction.account.id)?.label || '—' }}
+                        </span>
+                    </td>
+
+
+                    <td>
+                        {{ (paymentMethodService.allPaymentMethods() | findById:
+                        transaction.paymentMethod.id)?.label || '—' }}
+                    </td>
+
+
+                    <td>
+                        <span class="badge badge-flat">
+                            {{ (categoryService.allCategories() | findById: transaction.category.id)?.label || '—'
+                            }}
+                        </span>
+                    </td>
+
+
+                    <td class="description-cell">{{ transaction.description || '—' }}</td>
+
+
+                    <td class="amount-cell text-right debit font-medium">
+                        @if (transaction.type === 'DEBIT') {
+                        {{ transaction.amount | currency:'EUR':'symbol':'1.2-2' }}
+                        } @else {
+                        <span class="text-muted-light">—</span>
+                        }
+                    </td>
+
+
+                    <td class="amount-cell text-right credit font-medium">
+                        @if (transaction.type === 'CREDIT') {
+                        {{ transaction.amount | currency:'EUR':'symbol':'1.2-2' }}
+                        } @else {
+                        <span class="text-muted-light">—</span>
+                        }
+                    </td>
+
+
+                    <td class="whitespace-nowrap">
+                        @if (transaction.recurrenceMonths && transaction.recurrenceMonths > 0) {
+                        <span class="badge badge-recurrence" title="Transaction récurrente">
+                            🔄 {{ transaction.recurrenceMonths }} m
+                        </span>
+                        } @else {
+                        <span class="text-muted-light">Unique</span>
+                        }
+                    </td>
+
+
+                    <td class="text-center">
+                        <input type="checkbox" [checked]="transaction.isChecked" (change)="onToggleCheck(transaction)"
+                            class="checkbox-pointer" title="Pointer la transaction">
+                    </td>
+
+
+                    <td class="text-center actions-cell">
+                        <button type="button" class="btn-icon btn-edit" (click)="onEdit(transaction)"
+                            title="Modifier">✏️</button>
+                        <button type="button" class="btn-icon btn-delete" (click)="onDeleteTransaction(transaction.id)"
+                            title="Supprimer">🗑️</button>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="10" class="empty-state">Aucune transaction pour le moment.</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

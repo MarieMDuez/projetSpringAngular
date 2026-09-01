@@ -1,0 +1,33 @@
+<div class="category-container">
+  <app-category-form></app-category-form>
+
+  <div class="settings-divider"></div>
+
+
+  <div class="categories-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (category of categories(); track category.id) {
+    <div class="category-item-row" [class.inactive-row]="!category.isActive" cdkDrag>
+
+      @if (category.isActive) {
+      <span class="drag-handle" cdkDragHandle>☰</span>
+      } @else {
+
+      <span class="drag-handle-placeholder"></span>
+      }
+      <span class="category-name-text">
+        {{ category.label }}
+        @if (!category.isActive) { <span class="text-muted text-small">(Archivé)</span> }
+      </span>
+
+      @if (category.isActive) {
+      <div class="category-item-actions">
+        <button type="button" class="btn-icon btn-edit" (click)="onEdit(category)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon btn-delete" (click)="onDelete(category)" title="Supprimer">🗑️</button>
+      </div>
+      }
+    </div>
+    } @empty {
+    <p class="text-muted text-small">Aucune catégorie disponible pour le moment.</p>
+    }
+  </div>
+</div>

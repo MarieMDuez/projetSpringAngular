@@ -1,0 +1,28 @@
+/* styles.scss (Global) */
+html, body, app-root {
+  background-color: #f1f5f9 !important;
+  min-height: 100vh;
+  display: block;
+}
+
+.filter-select, .inline-select, .form-group select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  
+  background: #ffffff url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSIjNjQ3NDhiIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTE5IDlsLTcgNy03LTciLz48L3N2Zz4=") no-repeat right 0.75rem center / 0.875rem !important;
+  
+  height: 34px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  padding: 0 2rem 0 0.75rem !important; 
+  color: #334155 !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  font-size: 0.8125rem !important;
+}
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}

@@ -1,0 +1,34 @@
+<div class="payment-method-container">
+  <app-payment-method-form></app-payment-method-form>
+
+  <div class="settings-divider"></div>
+
+
+  <div class="payment-methods-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+    @for (paymentMethod of paymentMethods(); track paymentMethod.id) {
+    <div class="payment-method-item-row" [class.inactive-row]="!paymentMethod.isActive" cdkDrag>
+
+      @if (paymentMethod.isActive) {
+      <span class="drag-handle" cdkDragHandle>☰</span>
+      } @else {
+
+      <span class="drag-handle-placeholder"></span>
+      }
+      <span class="payment-method-name-text">
+        {{ paymentMethod.label }}
+        @if (!paymentMethod.isActive) { <span class="text-muted text-small">(Archivé)</span> }
+      </span>
+
+      @if (paymentMethod.isActive) {
+      <div class="payment-method-item-actions">
+        <button type="button" class="btn-icon btn-edit" (click)="onEdit(paymentMethod)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon btn-delete" (click)="onDelete(paymentMethod)"
+          title="Supprimer">🗑️</button>
+      </div>
+      }
+    </div>
+    } @empty {
+    <p class="text-muted text-small">Aucun moyen de paiement disponible pour le moment.</p>
+    }
+  </div>
+</div>

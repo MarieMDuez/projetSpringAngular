@@ -1,0 +1,25 @@
+export interface Transaction {
+  id?: number;
+  amount: number;
+  emissionDate: string;
+  type: 'DEBIT' | 'CREDIT';
+  description?: string;
+  recurrenceMonths?: number;
+  isAlertTriggered: boolean;
+  isChecked: boolean;
+  parentTransactionId: number | null;
+
+  account: { id: number };
+  category: { id: number };
+  paymentMethod: { id: number };
+}
+
+export interface TransactionFilters {
+  accountId?: number | null;
+  categoryId?: string;
+  type?: string;
+  year?: string;
+  month?: string;
+  day?: string;
+  limit?: number | string;
+}

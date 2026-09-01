@@ -1,0 +1,30 @@
+# ==========================================
+# GESTION DES DOSSIERS SPECIFIQUES
+# ==========================================
+gestion-budget-front/dist/
+gestion-budget-front/tmp/
+gestion-budget-front/node_modules/
+gestion-budget-front/.angular/cache/
+apirest/target/
+
+# ==========================================
+# EXCLUSIONS GENERALES INFRA & IDES
+# ==========================================
+**.class
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# STRATEGIE POUR LE JAR RECRUTEUR
+# ==========================================
+# On ignore les JARs dans le dossier apirest pour ne pas uploader le build
+apirest/target/*.jar
+# On s'assure de ne PAS ignorer le dossier exécutable
+!exécutable/
+!exécutable/backend-app.jar

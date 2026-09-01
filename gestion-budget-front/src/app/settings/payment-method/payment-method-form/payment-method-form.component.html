@@ -1,0 +1,25 @@
+<form [formGroup]="paymentMethodForm" (ngSubmit)="onSubmit()" class="inline-settings-form" id="editForm"
+    [class]="this.paymentMethodService.editingPaymentMethod()?.id ? 'editForm':''">
+
+    <div class="form-group font-field">
+        <label for="paymentMethodLabel">Nom du moyen de paiement</label>
+        <input id="paymentMethodLabel" type="text" formControlName="label"
+            placeholder="Ex: Virement, Carte Bancaire, Espèces...">
+        @if (paymentMethodForm.get('label')?.touched && paymentMethodForm.get('label')?.invalid) {
+        <small class="error-text">Obligatoire (3 car. min)</small>
+        }
+    </div>
+
+    <div class="form-actions-inline">
+        @if (this.paymentMethodService.editingPaymentMethod() !== null) {
+        <button type="button" class="btn-cancel" (click)="onCancelEdit()">Annuler</button>
+        }
+        <button type="submit" class="btn-add-submit" [disabled]="paymentMethodForm.invalid">
+            {{ this.paymentMethodService.editingPaymentMethod() !== null ? 'Enregistrer' : 'Ajouter' }}
+        </button>
+    </div>
+</form>
+
+@if (errorMessage()) {
+<div class="alert-error">{{ errorMessage() }}</div>
+}
