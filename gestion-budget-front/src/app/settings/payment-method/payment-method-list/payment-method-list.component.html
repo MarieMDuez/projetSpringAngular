@@ -1,31 +1,36 @@
-<div class="payment-method-container">
+<div class="payment-method-list-container">
+  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-payment-method-form></app-payment-method-form>
 
-  <div class="settings-divider"></div>
-
-
-  <div class="payment-methods-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (paymentMethod of paymentMethods(); track paymentMethod.id) {
-    <div class="payment-method-item-row" [class.inactive-row]="!paymentMethod.isActive" cdkDrag>
+    <div class="data-item" [class.item-disabled]="!paymentMethod.isActive" cdkDrag>
 
+      <!-- Poignée de glissement (Drag Handle) -->
       @if (paymentMethod.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
-
       <span class="drag-handle-placeholder"></span>
       }
-      <span class="payment-method-name-text">
-        {{ paymentMethod.label }}
-        @if (!paymentMethod.isActive) { <span class="text-muted text-small">(Archivé)</span> }
-      </span>
 
-      @if (paymentMethod.isActive) {
-      <div class="payment-method-item-actions">
-        <button type="button" class="btn-icon btn-edit" (click)="onEdit(paymentMethod)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon btn-delete" (click)="onDelete(paymentMethod)"
-          title="Supprimer">🗑️</button>
+      <!-- Informations du Moyen de Paiement -->
+      <div class="item-info">
+        <span class="item-name">
+          {{ paymentMethod.label }}
+          @if (!paymentMethod.isActive) {
+          <span class="badge-archived">(Archivé)</span>
+          }
+        </span>
       </div>
-      }
+
+      <!-- Actions sur le Moyen de Paiement -->
+      <div class="item-actions">
+        @if (paymentMethod.isActive) {
+        <button type="button" class="btn-icon" (click)="onEdit(paymentMethod)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon" (click)="onDelete(paymentMethod)" title="Supprimer">🗑️</button>
+        }
+      </div>
+
     </div>
     } @empty {
     <p class="text-muted text-small">Aucun moyen de paiement disponible pour le moment.</p>

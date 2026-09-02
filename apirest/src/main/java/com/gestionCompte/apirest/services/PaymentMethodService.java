@@ -33,16 +33,24 @@ public class PaymentMethodService {
 	}
 
 	public PaymentMethod createPaymentMethod(PaymentMethod paymentMethod) {
+		if(paymentMethodRepository.existsByLabelIgnoreCase(paymentMethod.getLabel())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
+		}
 		return paymentMethodRepository.save(paymentMethod);
 	}
 
 	public PaymentMethod updatePaymentMethod(Long id, PaymentMethod paymentMethodDetails) {
-		PaymentMethod existingPaymentMethodRepository = paymentMethodRepository.findById(id).orElseThrow(
+		PaymentMethod existingPaymentMethod = paymentMethodRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment Method not found with id: " + id));
+		
+		if (!existingPaymentMethod.getLabel().equalsIgnoreCase(paymentMethodDetails.getLabel()) 
+		        && paymentMethodRepository.existsByLabelIgnoreCase(paymentMethodDetails.getLabel())) {
+		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom de compte existe déjà !");
+		    }
 
-		existingPaymentMethodRepository.setLabel(paymentMethodDetails.getLabel());
+		existingPaymentMethod.setLabel(paymentMethodDetails.getLabel());
 
-		return paymentMethodRepository.save(paymentMethodDetails);
+		return paymentMethodRepository.save(existingPaymentMethod);
 	}
 
 

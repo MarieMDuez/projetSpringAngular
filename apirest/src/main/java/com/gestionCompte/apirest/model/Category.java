@@ -2,6 +2,7 @@ package com.gestionCompte.apirest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +18,7 @@ public class Category {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-	
+	@Column(nullable = false, unique = true)
 	private String label;
 	@JsonProperty("isActive")
 	private boolean isActive = true;

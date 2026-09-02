@@ -1,25 +1,24 @@
-<header class="saas-header">
+<header class="app-header">
   <div class="header-brand">
-    <span class="brand-icon">💰</span>
-    <h1 class="brand-title">Gestion de compte</h1>
-    <span class="brand-version">v1.5</span>
+    <span class="brand-logo">💰</span>
+    <h1 class="brand-title">Gestion de Compte</h1>
+    <span class="brand-tag">v1.5</span>
   </div>
 
-  <nav class="saas-nav">
-    <a routerLink="/transactions" routerLinkActive="active-link" class="nav-item">
+  <nav class="app-nav">
+    <a routerLink="/transactions" routerLinkActive="active" class="nav-link">
       📊 Historique
     </a>
-    <a routerLink="/settings" routerLinkActive="active-link" class="nav-item">
+    <a routerLink="/settings" routerLinkActive="active" class="nav-link">
       ⚙️ Configuration
     </a>
   </nav>
 </header>
 
-
-<main class="saas-main-content">
+<main class="app-content">
   <router-outlet />
 </main>
-
-<footer class="saas-footer">
+<app-toast-container />
+<footer class="app-footer">
   <p>&copy; 2026 - Tous droits réservés.</p>
 </footer>

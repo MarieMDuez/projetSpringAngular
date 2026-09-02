@@ -4,6 +4,7 @@ import { PaymentMethodService } from '../payment-method.service';
 import { PaymentMethod } from '../payment-method.model';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { PaymentMethodFormComponent } from '../payment-method-form/payment-method-form.component';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-payment-method-list',
@@ -13,6 +14,7 @@ import { PaymentMethodFormComponent } from '../payment-method-form/payment-metho
 })
 export class PaymentMethodListComponent {
   private paymentMethodService = inject(PaymentMethodService);
+  private toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
@@ -41,12 +43,16 @@ export class PaymentMethodListComponent {
     this.paymentMethodService.deletePaymentMethod(PaymentMethod.id).subscribe({
       next: (isHardDeleted) => {
         if (isHardDeleted) {
-          console.log('Le compte a été supprimé physiquement de la BDD.');
+          this.toastService.show('Le moyen de paiement a été supprimé avec succès', 'success');
         } else {
-          console.log('Le compte contenant des transactions a été archivé proprement.');
+          this.toastService.show(
+            'Au moins une transaction est rattachée à ce moyen de paiement : il a été archivé avec succès',
+            'success',
+          );
         }
       },
-      error: (err) => this.errorMessage.set('Erreur lors de la suppression du compte.'),
+      error: (err) =>
+        this.toastService.show('Une erreur est survenue lors de la suppression', 'error'),
     });
   }
 

@@ -2,6 +2,7 @@ import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PaymentMethodService } from '../payment-method.service';
 import { PaymentMethod } from '../payment-method.model';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-payment-method-form',
@@ -12,6 +13,7 @@ import { PaymentMethod } from '../payment-method.model';
 export class PaymentMethodFormComponent implements OnInit {
   protected paymentMethodService = inject(PaymentMethodService);
   private myFormBuilder = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
   protected errorMessage = signal<string | null>(null);
@@ -56,21 +58,46 @@ export class PaymentMethodFormComponent implements OnInit {
       paymentMethod.id = currentId;
       this.paymentMethodService.updatePaymentMethod(currentId, paymentMethod).subscribe({
         next: () => {
+          this.toastService.show('Moyen de paiement modifié avec succès !', 'success');
           this.paymentMethodForm.reset({ label: '' });
           this.paymentMethodService.editingPaymentMethod.set(null);
           this.errorMessage.set(null);
         },
-        error: (err) =>
-          this.errorMessage.set('Erreur lors de la modificatioon du moyen de paiement.'),
+        error: (err) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de moyen de paiement existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(
+              `Une erreur est survenue lors de la création du moyen de paiement`,
+              'error',
+            );
+          }
+        },
       });
     } else {
       paymentMethod.position = this.paymentMethods().length;
       this.paymentMethodService.createPaymentMethod(paymentMethod).subscribe({
         next: () => {
+          this.toastService.show('Moyen de paiement créé avec succès !', 'success');
           this.paymentMethodForm.reset({ label: '' });
           this.errorMessage.set(null);
         },
-        error: (err) => this.errorMessage.set('Erreur lors de la création du moyen de paiement.'),
+        error: (err) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de moyen de paiement existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(
+              `Une erreur est survenue lors de la création du moyen de paiement`,
+              'error',
+            );
+          }
+        },
       });
     }
   }

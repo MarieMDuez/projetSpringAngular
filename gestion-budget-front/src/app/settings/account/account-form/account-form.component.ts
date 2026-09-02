@@ -2,6 +2,8 @@ import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../account.model';
 import { AccountService } from '../account.service';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-account-form',
@@ -13,6 +15,8 @@ export class AccountFormComponent implements OnInit {
   protected accountForm!: FormGroup;
   private myFormBuilder = inject(FormBuilder);
   protected accountService = inject(AccountService);
+
+  private toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
   protected errorMessage = signal<string | null>(null);
@@ -61,11 +65,21 @@ export class AccountFormComponent implements OnInit {
       account.id = currentId;
       this.accountService.updateAccount(currentId, account).subscribe({
         next: () => {
+          this.toastService.show('Compte modifié avec succès !', 'success');
           this.accountService.editingAccount.set(null);
           this.accountForm.reset(accountVide);
           this.errorMessage.set(null);
         },
-        error: () => this.errorMessage.set('Erreur lors de la modification du compte.'),
+        error: (err: HttpErrorResponse) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de compte existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(`Une erreur est survenuelors de la création du compte`, 'error');
+          }
+        },
       });
     } else {
       const newAccount: Account = {
@@ -78,6 +92,8 @@ export class AccountFormComponent implements OnInit {
 
       this.accountService.createAccount(newAccount).subscribe({
         next: () => {
+          this.toastService.show('Compte créé avec succès !', 'success');
+
           this.accountForm.reset({
             label: '',
             initialBalance: 0,
@@ -87,7 +103,16 @@ export class AccountFormComponent implements OnInit {
           });
           this.errorMessage.set(null);
         },
-        error: (err) => this.errorMessage.set('Erreur lors de la création du compte.'),
+        error: (err: HttpErrorResponse) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de compte existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(`Une erreur est survenuelors de la création du compte`, 'error');
+          }
+        },
       });
     }
   }

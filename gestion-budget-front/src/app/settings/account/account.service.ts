@@ -28,8 +28,13 @@ export class AccountService {
   createAccount(account: Account): Observable<Account> {
     return this.http.post<Account>(this.apiUrl, account).pipe(
       tap((createdAccount) => {
-        // C'est le service qui met à jour le State global !
-        this.allAccountsSignal.update((current) => [...current, createdAccount]);
+        this.allAccountsSignal.update((current) => {
+          if (createdAccount.isActive) {
+            const cleanedList = current.map((a) => ({ ...a, isDefault: false }));
+            return [...cleanedList, createdAccount];
+          }
+          return [...current, createdAccount];
+        });
       }),
     );
   }
@@ -37,7 +42,14 @@ export class AccountService {
   updateAccount(id: number, account: Account): Observable<Account> {
     return this.http.put<Account>(`${this.apiUrl}/${id}`, account).pipe(
       tap((result) => {
-        this.allAccountsSignal.update((current) => current.map((a) => (a.id === id ? result : a)));
+        this.allAccountsSignal.update((current) => {
+          return current.map((a) => {
+            if (a.id === id) {
+              return result;
+            }
+            return result.isDefault ? { ...a, isDefault: false } : a;
+          });
+        });
       }),
     );
   }
@@ -48,9 +60,9 @@ export class AccountService {
         this.allAccountsSignal.update((current) =>
           current.map((a) => {
             if (a.id === id) {
-              return result; // Le nouveau compte par défaut (reçu du Back avec isDefault = true)
+              return result;
             } else {
-              return { ...a, isDefault: false }; // Tous les autres passent automatiquement à false dans l'UI !
+              return { ...a, isDefault: false };
             }
           }),
         );

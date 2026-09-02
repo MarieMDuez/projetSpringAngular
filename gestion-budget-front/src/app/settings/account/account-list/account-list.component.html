@@ -1,45 +1,48 @@
-<div class="account-container">
+<div class="account-list-container">
+  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-account-form></app-account-form>
 
-  <div class="settings-divider"></div>
-
-
-  <div class="accounts-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (account of accounts(); track account.id) {
-    <div class="account-item-row" [class.inactive-row]="!account.isActive" cdkDrag>
+    <div class="data-item" [class.item-disabled]="!account.isActive" cdkDrag>
 
+      <!-- Poignée de glissement (Drag Handle) -->
       @if (account.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
-
       <span class="drag-handle-placeholder"></span>
       }
-      <div class="account-info-block">
-        <span class="account-name-text">
+
+      <!-- Informations du Compte -->
+      <div class="item-info">
+        <span class="item-name">
           {{ account.label }}
-          @if (!account.isActive) { <span class="text-muted text-small">(Archivé)</span> }
+          @if (!account.isActive) {
+          <span class="badge-archived">(Archivé)</span>
+          }
         </span>
-        <span class="account-balance-badge">
-          {{ account.initialBalance | currency:'EUR':'symbol':'1.2-2' }}
+        <span class="item-sub">
+          Solde initial : {{ account.initialBalance | currency:'EUR':'symbol':'1.2-2' }}
         </span>
       </div>
 
-      <div class="account-item-actions">
+      <!-- Actions sur le Compte -->
+      <div class="item-actions">
         @if (account.isActive) {
         @if (account.isDefault) {
-        <span class="badge badge-default-active" title="Compte principal sélectionné">⭐ Principal</span>
+        <span class="badge-success-solid" title="Compte principal sélectionné">⭐ Principal</span>
         } @else {
-        <button type="button" (click)="toggleAccountByDefault(account)" class="btn-text-action">
+        <button type="button" (click)="toggleAccountByDefault(account)" class="btn-secondary-link">
           Passer en principal
         </button>
         }
-        <button type="button" class="btn-icon btn-edit" (click)="onEdit(account)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon btn-delete" (click)="onDelete(account)"
-          title="Supprimer le compte">🗑️</button>
+        <button type="button" class="btn-icon" (click)="onEdit(account)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon" (click)="onDelete(account)" title="Supprimer le compte">🗑️</button>
         } @else {
-        <span class="text-muted text-small">—</span>
+        <span class="text-muted">—</span>
         }
       </div>
+
     </div>
     } @empty {
     <p class="text-muted text-small">Aucun compte disponible pour le moment.</p>

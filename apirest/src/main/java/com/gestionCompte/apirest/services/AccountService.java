@@ -29,19 +29,46 @@ public class AccountService {
 		return accountRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found with id: " + id));
 	}
+	
+	private void handleDefaultAccount(Long currentAccountId) {
+	    accountRepository.findByIsDefaultTrue().ifPresent(oldDefault -> {
+	        if (currentAccountId == null || !oldDefault.getId().equals(currentAccountId)) {
+	            oldDefault.setDefault(false);
+	            accountRepository.save(oldDefault);
+	        }
+	    });
+	}
 
 	public Account createAccount(Account account) {
+		if(accountRepository.existsByLabelIgnoreCase(account.getLabel())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
+		}
+		if (account.isDefault()) {
+	        handleDefaultAccount(null);
+	    }
 		return accountRepository.save(account);
 	}
 
-	public Account updateAccount(Long id, Account accountDetails) {
-		Account existingAccountRepository = accountRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found with id: " + id));
 
-		existingAccountRepository.setLabel(accountDetails.getLabel());
-		existingAccountRepository.setInitialBalance(accountDetails.getInitialBalance());
+
+	public Account updateAccount(Long id, Account accountDetails) {
+		Account existingAccount = accountRepository.findById(id).orElseThrow(
+				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found with id: " + id));
+		
+		if (!existingAccount.getLabel().equalsIgnoreCase(accountDetails.getLabel()) 
+		        && accountRepository.existsByLabelIgnoreCase(accountDetails.getLabel())) {
+		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom de compte existe déjà !");
+		    }
+
+		existingAccount.setLabel(accountDetails.getLabel());
+		existingAccount.setInitialBalance(accountDetails.getInitialBalance());
+		existingAccount.setDefault(accountDetails.isDefault());
+		
+		if (existingAccount.isDefault()) {
+	        handleDefaultAccount(id);
+	    }
 	
-		return accountRepository.save(accountDetails);
+		return accountRepository.save(existingAccount);
 	}
 
 	public Optional<Account> getDefaultAccount() {
@@ -52,11 +79,7 @@ public class AccountService {
 		Account newDefaultAccount = accountRepository.findById(accountId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
-
-		accountRepository.findByIsDefaultTrue().ifPresent(oldDefault -> {
-			oldDefault.setDefault(false);
-			accountRepository.save(oldDefault);
-		});
+		handleDefaultAccount(accountId);
 
 		newDefaultAccount.setDefault(true);
 

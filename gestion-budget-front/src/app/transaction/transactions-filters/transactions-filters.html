@@ -1,207 +1,173 @@
-<form [formGroup]="filterForm" class="filters-container">
-    <table class="transaction-table">
-        <caption>Filtrer les informations</caption>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Compte</th>
-                <th>Moyen de Paiement</th>
-                <th>Catégorie</th>
-                <th>Description</th>
-                <th class="text-right">Débit (-)</th>
-                <th class="text-right">Crédit (+)</th>
-                <th>Réc.</th>
-                <th class="text-center">Pointée</th>
-                <th class="text-center">Actions</th>
-            </tr>
+<form [formGroup]="filterForm" class="filters-wrapper-box">
+    <h3 class="section-title-tracker">Filtrer les informations</h3>
+
+    <!-- LIGNE PRINCIPALE DE FILTRAGE (Chirurgicalement alignée sur le tableau) -->
+    <div class="form-grid-inline">
+
+        <!-- 1. Filtres de Date (Année / Mois / Jour) -->
+        <div class="form-group-tracker" style="width: 11%; min-width: 11%;">
+            <label>Date (A / M / J)</label>
+            <div class="date-filter-group" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <!-- Année -->
+                <div class="input-wrapper">
+                    <input id="filterYear" formControlName="year" type="number" min="2000" max="2200"
+                        placeholder="Année" style="text-align: right;" />
+                    @if (filterForm.get('year')?.value) {
+                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('year')"
+                        title="Effacer">✖</button>
+                    }
+                </div>
+                <!-- Mois -->
+                <div class="input-wrapper">
+                    <select appSelectLoop id="filterMonth" formControlName="month">
+                        <option value="">Tous les mois</option>
+                        @for (month of availableMonths; track month.value) {
+                        <option [value]="month.value">{{ month.label | titlecase }}</option>
+                        }
+                    </select>
+                    @if (filterForm.get('month')?.value) {
+                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('month')"
+                        title="Effacer">✖</button>
+                    }
+                </div>
+                <!-- Jour -->
+                <div class="input-wrapper">
+                    <input id="filterDay" formControlName="day" type="number" min="1" max="31" placeholder="Jour"
+                        style="text-align: right;" />
+                    @if (filterForm.get('day')?.value) {
+                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('day')"
+                        title="Effacer">✖</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Filtre : Compte -->
+        <div class="form-group-tracker" style="width: 12%; min-width: 12%;">
+            <label for="filterAccount">Compte</label>
+            <div class="input-wrapper">
+                <select appSelectLoop id="filterAccount" formControlName="accountId">
+                    <option value="">— Tous —</option>
+                    @for (acc of accounts(); track acc.id) {
+                    <option [value]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
+                    }
+                </select>
+                @if (filterForm.get('accountId')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('accountId')"
+                    title="Effacer">✖</button>
+                }
+            </div>
+        </div>
+
+        <!-- 3. Filtre : Moyen de Paiement -->
+        <div class="form-group-tracker" style="width: 12%; min-width: 12%;">
+            <label for="filterPayment">Moyen de Paiement</label>
+            <div class="input-wrapper">
+                <select appSelectLoop id="filterPayment" formControlName="paymentMethodId">
+                    <option value="">— Tous —</option>
+                    @for (pay of paymentMethods(); track pay.id) {
+                    <option [value]="pay.id">{{ pay.label }} {{ !pay.isActive ? '(Archivé)' : '' }}</option>
+                    }
+                </select>
+                @if (filterForm.get('paymentMethodId')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('paymentMethodId')"
+                    title="Effacer">✖</button>
+                }
+            </div>
+        </div>
+
+        <!-- 4. Filtre : Catégorie -->
+        <div class="form-group-tracker" style="width: 18%; min-width: 12%;">
+            <label for="filterCategory">Catégorie</label>
+            <div class="input-wrapper">
+                <select appSelectLoop id="filterCategory" formControlName="categoryId">
+                    <option value="">— Toutes —</option>
+                    @for (cat of categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.label }} {{ !cat.isActive ? '(Archivé)' : '' }}</option>
+                    }
+                </select>
+                @if (filterForm.get('categoryId')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('categoryId')"
+                    title="Effacer">✖</button>
+                }
+            </div>
+        </div>
 
 
-        </thead>
-        <tr>
-            <td>
-                <div class="date-filter-group">
-                    <div class="input-wrapper">
-                        <input id="filterYear" formControlName="year" type="number" min="2000" max="2200"
-                            placeholder="Ex: 2026" class="inline-input text-right" />
-                        @if (filterForm.get('year')?.value) {
-                        <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('year')"
-                            title="Effacer ce filtre">
-                            ✖
-                        </button>
-                        }
-                    </div>
-                    <div class="input-wrapper">
-                        <select appSelectLoop id="filterMonth" formControlName="month" class="filter-select">
-                            <option value="">Tous les mois</option>
 
-                            @for (month of availableMonths; track month.value) {
-                            <option [value]="month.value">{{ month.label | titlecase }}</option>
-                            }
-                        </select>
-                        @if (filterForm.get('month')?.value) {
-                        <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('month')"
-                            title="Effacer ce filtre">
-                            ✖
-                        </button>
-                        }
-                    </div>
-                    <div class="input-wrapper">
-                        <input id="filterYear" formControlName="day" type="number" min="1" max="31" placeholder="Ex: 1"
-                            class="inline-input text-right" />
-                        @if (filterForm.get('day')?.value) {
-                        <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('day')"
-                            title="Effacer ce filtre">
-                            ✖
-                        </button>
-                        }
-                    </div>
-                </div>
-            </td>
-            <td>
-                <div class="input-wrapper">
-                    <select appSelectLoop id="filterAccount" formControlName="accountId" class="filter-select"
-                        title="Filtrer par compte">
-                        <option value="">— Tous —</option>
-                        @for (acc of accounts(); track acc.id) {
-                        <option [value]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
-                        }
-                    </select>
-                    @if (filterForm.get('accountId')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('accountId')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="input-wrapper">
-                    <select appSelectLoop id="filterPayment" formControlName="paymentMethodId" class="filter-select"
-                        title="Filtrer par moyen de paiement">
-                        <option value="">— Tous —</option>
-                        @for (pay of paymentMethods(); track pay.id) {
-                        <option [value]="pay.id">{{ pay.label }} {{ !pay.isActive ? '(Archivé)' : '' }}</option>
-                        }
-                    </select>
-                    @if (filterForm.get('paymentMethodId')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('paymentMethodId')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="input-wrapper">
-                    <select appSelectLoop id="filterCategory" formControlName="categoryId" class="filter-select"
-                        title="Filtrer par catégorie">
-                        <option value="">— Toutes —</option>
-                        @for (cat of categories(); track cat.id) {
-                        <option [value]="cat.id">{{ cat.label }} {{ !cat.isActive ? '(Archivé)' : '' }}</option>
-                        }
-                    </select>
-                    @if (filterForm.get('categoryId')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('categoryId')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-            </td>
-            <td colspan="2" class="text-right">
-                <div class="input-wrapper">
-                    <select appSelectLoop formControlName="type" class="filter-select appSelectLoop select-type">
-                        <option value="">— Tous les flux —</option>
-                        <option value="DEBIT">Dépenses (Débit)</option>
-                        <option value="CREDIT">Revenus (Crédit)</option>
-                    </select>
-                    @if (filterForm.get('type')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('type')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="input-wrapper">
-                    <select appSelectLoop formControlName="recurrenceMonths"
-                        class="filter-select appSelectLoop select-type" title="filtrer par récurrence">
-                        <option value="">Toutes</option>
-                        @for (months of transactionService.uniqueRecurrences(); track months) {
-                        <option [value]="months">
-                            @if (months === 0) { Ponctuelle }
-                            @else { {{ months }} mois }
-                        </option>
-                        }
-                    </select>
-                    @if (filterForm.get('recurrenceMonths')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('recurrenceMonths')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="input-wrapper">
-                    <select appSelectLoop formControlName="isChecked" class="filter-select">
-                        <option value="">— Tous —</option>
-                        <option value="true">Validées</option>
-                        <option value="false">En attente</option>
-                    </select>
-                    @if (filterForm.get('isChecked')?.value) {
-                    <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('isChecked')"
-                        title="Effacer ce filtre">
-                        ✖
-                    </button>
-                    }
-                </div>
-            </td>
-            <td>
-                <div class="filter-actions">
-                    <button type="button" class="btn-clear" (click)="clearAllFilters()">
-                        Effacer les filtres
-                    </button>
-                </div>
-            </td>
-        </tr>
-    </table>
-    <div class="quick-generate-container">
-        <span class="generate-label">Générer les transactions récurrentes pour le mois de :</span>
+        <!-- 6 & 7. Filtre : Type de flux (Débit / Crédit combinés) -->
+        <div class="form-group-tracker" style="width: 18%; min-width: 18%;">
+            <label>Type de Flux</label>
+            <div class="input-wrapper">
+                <select appSelectLoop formControlName="type">
+                    <option value="">— Tous les flux —</option>
+                    <option value="DEBIT">Dépenses (Débit)</option>
+                    <option value="CREDIT">Revenus (Crédit)</option>
+                </select>
+                @if (filterForm.get('type')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('type')"
+                    title="Effacer">✖</button>
+                }
+            </div>
+        </div>
 
-        <div class="quick-generate-box">
-            <div class="select-wrapper">
-                <select appSelectLoop id="gen-month" #genMonth class="inline-select">
-                    @for (m of availableMonths; track m.value) {
-                    <option [value]="m.value" [selected]="m.value === (filterForm.get('month')?.value || nextMonth)">
-                        {{ m.label | titlecase }}
+        <!-- 8. Filtre : Récurrence -->
+        <div class="form-group-tracker" style="width: 6%; min-width: 6%;">
+            <label>Réc.</label>
+            <div class="input-wrapper">
+                <select appSelectLoop formControlName="recurrenceMonths">
+                    <option value="">Toutes</option>
+                    @for (months of transactionService.uniqueRecurrences(); track months) {
+                    <option [value]="months">
+                        @if (months === 0) { Ponctuelle }
+                        @else { {{ months }} m }
                     </option>
                     }
                 </select>
+                @if (filterForm.get('recurrenceMonths')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('recurrenceMonths')"
+                    title="Effacer">✖</button>
+                }
             </div>
+        </div>
 
+        <!-- 9. Filtre : Pointage (Checked) -->
+        <div class="form-group-tracker" style="width: 5%; min-width: 5%;">
+            <label>Pointée</label>
             <div class="input-wrapper">
-                <input type="number" id="gen-year" placeholder="Année" #genYear
-                    [value]="filterForm.get('year')?.value || 2026" />
+                <select appSelectLoop formControlName="isChecked">
+                    <option value="">Tous</option>
+                    <option value="true">Oui</option>
+                    <option value="false">Non</option>
+                </select>
+                @if (filterForm.get('isChecked')?.value) {
+                <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('isChecked')"
+                    title="Effacer">✖</button>
+                }
             </div>
+        </div>
 
-            <button type="button" class="btn-trigger-generate" [disabled]="!genYear.value || !genMonth.value"
-                (click)="generateRecurrent(Number(genMonth.value), Number(genYear.value))">
-                Générer
+        <!-- Actions globales : Effacer Tout -->
+        <div style="height: 36px; display: flex; align-items: center;">
+            <button type="button" class="btn-secondary-link" style="color: #ef4444; white-space: nowrap;"
+                (click)="clearAllFilters()">
+                Effacer les filtres
             </button>
         </div>
+
     </div>
-    <div class="filter-group">
-        <label for="limit-select">Limiter l'affichage</label>
-        <select appSelectLoop id="limit-select" formControlName="limit" class="filter-select">
-            <option [value]="0">Tout afficher</option>
-            <option [value]="50">50 dernières</option>
-            <option [value]="100">100 dernières</option>
-            <option [value]="200">200 dernières</option>
-        </select>
+    <div class="filters-footer-tools">
+
+        <!-- Outil : Limitation d'affichage -->
+        <div class="tool-limit-block">
+            <label for="limit-select">Limiter l'affichage :</label>
+            <select appSelectLoop id="limit-select" formControlName="limit" style="width: 160px; height: 34px;">
+                <option [value]="0">Tout afficher</option>
+                <option [value]="50">50 dernières</option>
+                <option [value]="100">100 dernières</option>
+                <option [value]="200">200 dernières</option>
+            </select>
+        </div>
     </div>
 
 </form>

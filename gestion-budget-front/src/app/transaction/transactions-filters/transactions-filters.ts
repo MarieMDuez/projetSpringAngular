@@ -29,8 +29,6 @@ export class TransactionsFilters implements OnInit {
   protected categories = this.categoryService.allCategories;
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
-  protected nextMonth: number = new Date().getMonth() + 2;
-
   constructor() {
     //écoute du signal pour mettre à jour le filtre de compte dans les filtres et dans la sélection globale.
     effect(() => {
@@ -151,17 +149,4 @@ export class TransactionsFilters implements OnInit {
     value: i + 1,
     label: new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(new Date(2000, i, 1)),
   }));
-
-  protected readonly Number = Number;
-
-  protected generateRecurrent(month: number, year: number): void {
-    if (month && year && year.toString().length === 4) {
-      this.transactionService.generateRecurrentTransactions(month, year).subscribe({
-        next: () => {
-          console.log(`🎯 Liste chaînée activée : récurrences injectées pour ${month}/${year}`);
-        },
-        error: (err) => console.error('Erreur lors du traitement des récurrences', err),
-      });
-    }
-  }
 }

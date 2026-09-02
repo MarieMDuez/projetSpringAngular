@@ -21,7 +21,7 @@ public class Account {
     private Long id;
 	
 	
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String label;
 	
 	@Column(nullable = false)

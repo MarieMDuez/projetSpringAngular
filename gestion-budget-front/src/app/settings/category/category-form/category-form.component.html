@@ -1,7 +1,8 @@
-<form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="inline-settings-form" id="editForm"
-    [class]="this.categoryService.editingCategory()?.id ? 'editForm':''">
+<form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="form-inline" id="editForm"
+    [class.edit-mode]="this.categoryService.editingCategory()?.id">
 
-    <div class="form-group font-field">
+    <!-- Champ : Nom de la catégorie -->
+    <div class="form-group">
         <label for="categoryLabel">Nom de la catégorie</label>
         <input id="categoryLabel" type="text" formControlName="label" placeholder="Ex: Loyer, Électricité, Courses...">
         @if (categoryForm.get('label')?.touched && categoryForm.get('label')?.invalid) {
@@ -9,16 +10,13 @@
         }
     </div>
 
-    <div class="form-actions-inline">
+    <!-- Actions du Formulaire -->
+    <div class="form-actions">
         @if (this.categoryService.editingCategory() !== null) {
-        <button type="button" class="btn-cancel" (click)="onCancelEdit()">Annuler</button>
+        <button type="button" class="btn-secondary-link" (click)="onCancelEdit()">Annuler</button>
         }
-        <button type="submit" class="btn-add-submit" [disabled]="categoryForm.invalid">
+        <button type="submit" class="btn-primary" [disabled]="categoryForm.invalid">
             {{ this.categoryService.editingCategory() !== null ? 'Enregistrer' : 'Ajouter' }}
         </button>
     </div>
 </form>
-
-@if (errorMessage()) {
-<div class="alert-error">{{ errorMessage() }}</div>
-}

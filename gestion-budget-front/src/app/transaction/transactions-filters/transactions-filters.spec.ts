@@ -114,10 +114,4 @@ describe('TransactionFiltersComponent', () => {
     expect(filterForm.value.isChecked).toBe('');
     expect(filterForm.value.type).toBe('DEBIT');
   });
-
-  it('should dispatch request to generate scheduled rows on valid calendar submission', () => {
-    component['generateRecurrent'](12, 2026);
-
-    expect(mockTransactionService.generateRecurrentTransactions).toHaveBeenCalledWith(12, 2026);
-  });
 });

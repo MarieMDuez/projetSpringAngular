@@ -1,27 +1,29 @@
 <div class="balances-container">
     <div class="balances-scope">
         <label for="scopeAccountSelect" class="scope-label">Périmètre des calculs :</label>
-        <select id="scopeAccountSelect" [ngModel]="transactionService.selectedAccountIdFilter()"
-            (ngModelChange)="onAccountScopeChange($event)" class="scope-select">
-            <option [ngValue]="null">🌍 Tous les comptes bancaires</option>
-            @for (acc of accountService.allAccounts(); track acc.id) {
-            <option [ngValue]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
-            }
-        </select>
+        <div class="select-wrapper">
+            <select id="scopeAccountSelect" [ngModel]="transactionService.selectedAccountIdFilter()"
+                (ngModelChange)="onAccountScopeChange($event)" class="scope-select">
+                <option [ngValue]="null">🌍 Tous les comptes bancaires</option>
+                @for (acc of accountService.allAccounts(); track acc.id) {
+                <option [ngValue]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
+                }
+            </select>
+        </div>
     </div>
+
     @if (currentBalances(); as balances) {
     <div class="balances-summary">
+        <!-- Carte Solde Réel (Vert) -->
         <div class="balance-card card-real">
-            <h4>Solde Réel (Pointé)</h4>
-            <p class="balance-amount">
-                {{ balances.currentBalance | number:'1.2-2' }} €
-            </p>
+            <span class="balance-title">Solde Réel (Pointé)</span>
+            <span class="balance-amount">{{ balances.currentBalance | number:'1.2-2' }} €</span>
         </div>
+
+        <!-- Carte Solde Prévisionnel (Bleu Indigo à la place du orange) -->
         <div class="balance-card card-projected">
-            <h4>Solde Prévisionnel</h4>
-            <p class="balance-amount">
-                {{ balances.provisionalBalance | number:'1.2-2' }} €
-            </p>
+            <span class="balance-title">Solde Prévisionnel</span>
+            <span class="balance-amount">{{ balances.provisionalBalance | number:'1.2-2' }} €</span>
         </div>
     </div>
     }

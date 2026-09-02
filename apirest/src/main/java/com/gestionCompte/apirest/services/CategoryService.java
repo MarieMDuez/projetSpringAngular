@@ -34,12 +34,20 @@ public class CategoryService {
 	}
 
 	public Category createCategory(Category category) {
+		if(categoryRepository.existsByLabelIgnoreCase(category.getLabel())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
+		}
 		return categoryRepository.save(category);
 	}
 
 	public Category updateCategory(Long id, Category categoryDetails) {
 		Category existingCategory = categoryRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
+		
+		if (!existingCategory.getLabel().equalsIgnoreCase(categoryDetails.getLabel()) 
+		        && categoryRepository.existsByLabelIgnoreCase(categoryDetails.getLabel())) {
+		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom de compte existe déjà !");
+		    }
 
 		existingCategory.setLabel(categoryDetails.getLabel());
 
@@ -50,7 +58,6 @@ public class CategoryService {
 		Category category = categoryRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
 		boolean hasTransactions = transactionRepository.existsByCategoryId(id);
-		System.out.println(hasTransactions);
 
 		if (hasTransactions) {
 			category.setActive(false);

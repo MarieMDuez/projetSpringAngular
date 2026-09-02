@@ -1,13 +1,9 @@
-<div class="feature-container">
-    <h2>💸 Historique des transactions</h2>
+<div class="transactions-table-container">
+    <h3 class="table-header-title">Liste des transactions</h3>
 
-
-    <div class="table-container">
-
-        <table class="transaction-table">
-            <caption>Liste des transactions</caption>
+    <div class="table-responsive">
+        <table class="custom-table">
             <thead>
-
                 <tr>
                     <th>Date</th>
                     <th>Compte</th>
@@ -20,86 +16,102 @@
                     <th class="text-center">Pointée</th>
                     <th class="text-center">Actions</th>
                 </tr>
-
-
             </thead>
 
             <tbody>
                 @for (transaction of transactionService.filteredTransactionsSignal(); track transaction.id) {
-                <tr [class.checked-row]="transaction.isChecked">
+                <tr [class.row-checked]="transaction.isChecked">
+                    <!-- Date formatted properly via our filter -->
+                    <td>{{ transaction.emissionDate | date:'dd-MM-yyyy' }}</td>
 
-                    <td>{{ transaction.emissionDate }}</td>
-
-
+                    <!-- Account Badge -->
                     <td>
-                        <span class="badge badge-outline">
-                            {{ (accountService.allAccounts() | findById: transaction.account.id)?.label || '—' }}
+                        @if (accountService.allAccounts() | findById: transaction.account?.id; as account) {
+                        <span class="table-text-bold">
+                            {{ account.label }}
+                            @if (!account.isActive) { <span class="badge-archived">(Archivé)</span> }
                         </span>
+                        } @else {
+                        <span class="text-muted">—</span>
+                        }
                     </td>
 
-
+                    <!-- Payment Method -->
                     <td>
-                        {{ (paymentMethodService.allPaymentMethods() | findById:
-                        transaction.paymentMethod.id)?.label || '—' }}
-                    </td>
-
-
-                    <td>
-                        <span class="badge badge-flat">
-                            {{ (categoryService.allCategories() | findById: transaction.category.id)?.label || '—'
-                            }}
+                        @if (paymentMethodService.allPaymentMethods() | findById: transaction.paymentMethod?.id; as
+                        paymentMethod) {
+                        <span>
+                            {{ paymentMethod.label }}
+                            @if (!paymentMethod.isActive) { <span class="badge-archived">(Archivé)</span> }
                         </span>
+                        } @else {
+                        <span class="text-muted">—</span>
+                        }
                     </td>
 
+                    <!-- Category Badge -->
+                    <td>
+                        @if (categoryService.allCategories() | findById: transaction.category?.id; as category) {
+                        <span>
+                            {{ category.label }}
+                            @if (!category.isActive) { <span class="badge-archived">(Archivé)</span> }
+                        </span>
+                        } @else {
+                        <span class="text-muted">—</span>
+                        }
+                    </td>
 
+                    <!-- Description -->
                     <td class="description-cell">{{ transaction.description || '—' }}</td>
 
-
-                    <td class="amount-cell text-right debit font-medium">
+                    <!-- Amount Debit (-) -->
+                    <td class="text-right amount-debit font-medium">
                         @if (transaction.type === 'DEBIT') {
                         {{ transaction.amount | currency:'EUR':'symbol':'1.2-2' }}
                         } @else {
-                        <span class="text-muted-light">—</span>
+                        <span class="text-muted">—</span>
                         }
                     </td>
 
-
-                    <td class="amount-cell text-right credit font-medium">
+                    <!-- Amount Credit (+) -->
+                    <td class="text-right amount-credit font-medium">
                         @if (transaction.type === 'CREDIT') {
                         {{ transaction.amount | currency:'EUR':'symbol':'1.2-2' }}
                         } @else {
-                        <span class="text-muted-light">—</span>
+                        <span class="text-muted">—</span>
                         }
                     </td>
 
-
-                    <td class="whitespace-nowrap">
+                    <!-- Recurrence -->
+                    <td>
                         @if (transaction.recurrenceMonths && transaction.recurrenceMonths > 0) {
-                        <span class="badge badge-recurrence" title="Transaction récurrente">
+                        <span class="badge-recurring" title="Transaction récurrente">
                             🔄 {{ transaction.recurrenceMonths }} m
                         </span>
                         } @else {
-                        <span class="text-muted-light">Unique</span>
+                        <span class="text-muted">Unique</span>
                         }
                     </td>
 
-
+                    <!-- Checked status (Pointage) -->
                     <td class="text-center">
                         <input type="checkbox" [checked]="transaction.isChecked" (change)="onToggleCheck(transaction)"
                             class="checkbox-pointer" title="Pointer la transaction">
                     </td>
 
-
-                    <td class="text-center actions-cell">
-                        <button type="button" class="btn-icon btn-edit" (click)="onEdit(transaction)"
+                    <!-- Actions Row -->
+                    <td class="text-center">
+                        <button type="button" class="btn-icon" (click)="onEdit(transaction)"
                             title="Modifier">✏️</button>
-                        <button type="button" class="btn-icon btn-delete" (click)="onDeleteTransaction(transaction.id)"
+                        <button type="button" class="btn-icon" (click)="onDeleteTransaction(transaction.id)"
                             title="Supprimer">🗑️</button>
                     </td>
                 </tr>
                 } @empty {
                 <tr>
-                    <td colspan="10" class="empty-state">Aucune transaction pour le moment.</td>
+                    <td colspan="10" class="empty-state text-muted text-center" style="padding: 2rem;">
+                        Aucune transaction pour le moment.
+                    </td>
                 </tr>
                 }
             </tbody>

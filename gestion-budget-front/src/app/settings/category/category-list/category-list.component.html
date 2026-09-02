@@ -1,30 +1,36 @@
-<div class="category-container">
+<div class="category-list-container">
+  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-category-form></app-category-form>
 
-  <div class="settings-divider"></div>
-
-
-  <div class="categories-list-wrapper" cdkDropList (cdkDropListDropped)="onDrop($event)">
+  <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (category of categories(); track category.id) {
-    <div class="category-item-row" [class.inactive-row]="!category.isActive" cdkDrag>
+    <div class="data-item" [class.item-disabled]="!category.isActive" cdkDrag>
 
+      <!-- Poignée de glissement (Drag Handle) -->
       @if (category.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
-
       <span class="drag-handle-placeholder"></span>
       }
-      <span class="category-name-text">
-        {{ category.label }}
-        @if (!category.isActive) { <span class="text-muted text-small">(Archivé)</span> }
-      </span>
 
-      @if (category.isActive) {
-      <div class="category-item-actions">
-        <button type="button" class="btn-icon btn-edit" (click)="onEdit(category)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon btn-delete" (click)="onDelete(category)" title="Supprimer">🗑️</button>
+      <!-- Informations de la Catégorie -->
+      <div class="item-info">
+        <span class="item-name">
+          {{ category.label }}
+          @if (!category.isActive) {
+          <span class="badge-archived">(Archivé)</span>
+          }
+        </span>
       </div>
-      }
+
+      <!-- Actions sur la Catégorie -->
+      <div class="item-actions">
+        @if (category.isActive) {
+        <button type="button" class="btn-icon" (click)="onEdit(category)" title="Modifier">✏️</button>
+        <button type="button" class="btn-icon" (click)="onDelete(category)" title="Supprimer">🗑️</button>
+        }
+      </div>
+
     </div>
     } @empty {
     <p class="text-muted text-small">Aucune catégorie disponible pour le moment.</p>

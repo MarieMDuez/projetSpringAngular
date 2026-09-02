@@ -6,9 +6,11 @@ import { PaymentMethodService } from '../../../settings/payment-method/payment-m
 import { Transaction } from '../../transaction.model';
 import { TransactionService } from '../../transaction.service';
 import { SelectLoopDirective } from '../../../shared/directives/select-loop.directive';
+import { TitleCasePipe } from '@angular/common';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 @Component({
   selector: 'app-transaction-form',
-  imports: [ReactiveFormsModule, SelectLoopDirective],
+  imports: [ReactiveFormsModule, SelectLoopDirective, TitleCasePipe],
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss',
 })
@@ -18,6 +20,7 @@ export class TransactionFormComponent implements OnInit {
   private paymentMethodsService = inject(PaymentMethodService);
   private categoryService = inject(CategoryService);
   private myFormBuilder = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   protected errorMessage = signal<string | null>(null);
   protected accounts = this.accountService.activeAccounts;
@@ -25,6 +28,14 @@ export class TransactionFormComponent implements OnInit {
   protected categories = this.categoryService.activeCategories;
 
   protected transactionForm!: FormGroup;
+
+  protected availableMonths = Array.from({ length: 12 }, (_, i) => ({
+    value: i + 1,
+    label: new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(new Date(2000, i, 1)),
+  }));
+
+  protected defaultMonth: string = '';
+  protected defaultYear: number = 0;
 
   constructor() {
     effect(() => {
@@ -47,6 +58,14 @@ export class TransactionFormComponent implements OnInit {
   }
 
   ngOnInit() {
+    const today = new Date();
+
+    const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+    // 3. On extrait le nom du mois (ou son index) et l'année
+    // .toLocaleString('fr-FR', { month: 'long' }) renverra "octobre"
+    this.defaultMonth = nextMonthDate.toLocaleString('fr-FR', { month: 'long' });
+    this.defaultYear = nextMonthDate.getFullYear();
     this.initForm();
   }
   private initForm(): void {
@@ -104,20 +123,61 @@ export class TransactionFormComponent implements OnInit {
       newTransaction.id = currentTx;
       this.transactionService.updateTransaction(currentTx, newTransaction).subscribe({
         next: () => {
-          this.transactionForm.reset(transactionVide);
+          (this.toastService.show('Transaction mise à jour !', 'success'),
+            this.transactionForm.reset(transactionVide));
           this.transactionService.transactionToEdit.set(null);
           this.errorMessage.set(null);
         },
-        error: () => this.errorMessage.set('Erreur lors de la modification de la transaction.'),
+        error: () =>
+          this.toastService.show('Erreur lors de la mise à jour de la transaction', 'error'),
       });
     } else {
       this.transactionService.createTransaction(newTransaction).subscribe({
         next: () => {
-          this.transactionForm.reset(transactionVide);
+          (this.toastService.show('Transaction enregistrée !', 'success'),
+            this.transactionForm.reset(transactionVide));
           this.transactionService.transactionToEdit.set(null);
           this.errorMessage.set(null);
         },
-        error: () => this.errorMessage.set('Erreur lors de la création de la transaction.'),
+        error: () =>
+          this.toastService.show("Erreur lors de l'enregistrement de la transaction", 'error'),
+      });
+    }
+  }
+
+  onCancelEdit() {
+    this.transactionForm.reset({});
+    this.transactionService.transactionToEdit.set(null);
+  }
+
+  protected readonly Number = Number;
+
+  protected generateRecurrent(month: number, year: number): void {
+    if (month && year && year.toString().length === 4) {
+      const totalAvant = this.transactionService.allTransactionsSignal().length;
+
+      this.transactionService.generateRecurrentTransactions(month, year).subscribe({
+        next: () => {
+          const totalApres = this.transactionService.allTransactionsSignal().length;
+
+          // 3. On calcule la différence
+          const nbCreees = totalApres - totalAvant;
+
+          if (nbCreees > 0) {
+            this.toastService.show(
+              `${nbCreees} transactions récurrentes ont été générées !`,
+              'success',
+            );
+          } else {
+            this.toastService.show(
+              'Toutes les transactions récurrentes existent déjà pour ce mois',
+              'info',
+            );
+          }
+        },
+        error: () => {
+          this.toastService.show('Erreur lors de la génération automatique', 'error');
+        },
       });
     }
   }

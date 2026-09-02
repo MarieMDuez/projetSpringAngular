@@ -10,4 +10,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 	List<Category> findByIsActiveTrue();
 	List<Category> findAllByOrderByPositionAsc();
 	List<Category> findByIsActiveTrueOrderByPositionAsc();
+	boolean existsByLabelIgnoreCase(String label);
 }

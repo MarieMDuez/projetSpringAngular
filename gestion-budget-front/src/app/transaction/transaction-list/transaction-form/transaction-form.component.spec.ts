@@ -32,6 +32,7 @@ describe('TransactionFormComponent', () => {
       transactionToEdit: transactionToEditSignal,
       createTransaction: vi.fn().mockReturnValue(of({})),
       updateTransaction: vi.fn().mockReturnValue(of({})),
+      generateRecurrentTransactions: vi.fn().mockReturnValue(of({})),
     };
 
     mockAccountService = {
@@ -168,5 +169,11 @@ describe('TransactionFormComponent', () => {
     component['onSubmit']();
 
     expect(component['errorMessage']()).toBe('Erreur lors de la création de la transaction.');
+  });
+
+  it('should dispatch request to generate scheduled rows on valid calendar submission', () => {
+    component['generateRecurrent'](12, 2026);
+
+    expect(mockTransactionService.generateRecurrentTransactions).toHaveBeenCalledWith(12, 2026);
   });
 });

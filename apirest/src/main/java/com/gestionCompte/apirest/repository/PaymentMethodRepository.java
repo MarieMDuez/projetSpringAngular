@@ -9,6 +9,6 @@ public interface PaymentMethodRepository  extends JpaRepository<PaymentMethod, L
 	List<PaymentMethod> findByIsActiveTrue();
 	List<PaymentMethod> findAllByOrderByPositionAsc();
 	List<PaymentMethod> findByIsActiveTrueOrderByPositionAsc();
-
+	boolean existsByLabelIgnoreCase(String label);
 
 }

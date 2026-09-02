@@ -5,10 +5,12 @@ import { CategoryService } from './settings/category/category.service';
 import { PaymentMethodService } from './settings/payment-method/payment-method.service';
 import { TransactionService } from './transaction/transaction.service';
 import { concatMap, forkJoin } from 'rxjs'; // <-- N'oublie pas les imports !
+import { ToastContainerComponent } from './shared/ConfirmationToast/toast-container.component';
+import { ToastService } from './shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, ToastContainerComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -17,6 +19,7 @@ export class App implements OnInit {
   private categoryService = inject(CategoryService);
   private paymentMethodService = inject(PaymentMethodService);
   private transactionService = inject(TransactionService);
+  protected toastService = inject(ToastService);
 
   ngOnInit() {
     forkJoin([

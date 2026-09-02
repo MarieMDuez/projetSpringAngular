@@ -4,6 +4,7 @@ import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CategoryFormComponent } from '../category-form/category-form.component';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 @Component({
   selector: 'app-category-list',
   imports: [DragDropModule, CategoryFormComponent],
@@ -12,6 +13,7 @@ import { CategoryFormComponent } from '../category-form/category-form.component'
 })
 export class CategoryListComponent implements OnInit {
   protected categoryService = inject(CategoryService);
+  private toastService = inject(ToastService);
 
   protected categories = this.categoryService.allCategories;
 
@@ -28,12 +30,16 @@ export class CategoryListComponent implements OnInit {
     this.categoryService.deleteCategory(category.id).subscribe({
       next: (isHardDeleted) => {
         if (isHardDeleted) {
-          console.log('Le compte a été supprimé physiquement de la BDD.');
+          this.toastService.show('La catégorie a été supprimé avec succès', 'success');
         } else {
-          console.log('Le compte contenant des transactions a été archivé proprement.');
+          this.toastService.show(
+            'Au moins une transaction est rattachée à cette catégorie : elle a été archivée avec succès',
+            'success',
+          );
         }
       },
-      error: (err) => this.errorMessage.set('Erreur lors de la suppression du compte.'),
+      error: (err) =>
+        this.toastService.show('Une erreur est survenue lors de la suppression', 'error'),
     });
   }
 

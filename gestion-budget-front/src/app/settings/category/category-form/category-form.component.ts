@@ -2,6 +2,7 @@ import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-category-form',
@@ -11,6 +12,7 @@ import { CategoryService } from '../category.service';
 })
 export class CategoryFormComponent implements OnInit {
   private myFormBuilder = inject(FormBuilder);
+  private toastService = inject(ToastService);
   protected categoryForm!: FormGroup;
   protected errorMessage = signal<string | null>(null);
 
@@ -48,19 +50,46 @@ export class CategoryFormComponent implements OnInit {
     if (currentId != null) {
       this.categoryService.updateCategory(currentId, cat).subscribe({
         next: () => {
+          this.toastService.show('Catégorie modifié avec succès !', 'success');
           this.categoryForm.reset(categoryVide);
           this.categoryService.editingCategory.set(null);
           this.errorMessage.set(null);
+        },
+        error: (err) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de catégorie existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(
+              `Une erreur est survenue lors de la modification de la catégorie`,
+              'error',
+            );
+          }
         },
       });
     } else {
       cat.position = this.categories().length;
       this.categoryService.createCategory(cat).subscribe({
         next: () => {
+          this.toastService.show('Catégorie créée avec succès !', 'success');
           this.categoryForm.reset(categoryVide);
           this.errorMessage.set(null);
         },
-        error: (err) => this.errorMessage.set('Erreur lors de la création de la catégorie.'),
+        error: (err) => {
+          if (err.status == 409) {
+            this.toastService.show(
+              `Une erreur est survenue : ce nom de catégorie existe déjà`,
+              'error',
+            );
+          } else {
+            this.toastService.show(
+              `Une erreur est survenue lors de la création de la catégorie`,
+              'error',
+            );
+          }
+        },
       });
     }
   }

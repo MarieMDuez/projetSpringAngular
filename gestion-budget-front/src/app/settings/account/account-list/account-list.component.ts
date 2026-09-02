@@ -5,6 +5,7 @@ import { Account } from '../account.model';
 import { CurrencyPipe } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AccountFormComponent } from '../account-form/account-form.component';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-account-list',
@@ -14,6 +15,7 @@ import { AccountFormComponent } from '../account-form/account-form.component';
 })
 export class AccountListComponent implements OnInit {
   private accountService = inject(AccountService);
+  private toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
 
@@ -43,12 +45,16 @@ export class AccountListComponent implements OnInit {
     this.accountService.deleteAccount(account.id).subscribe({
       next: (isHardDeleted) => {
         if (isHardDeleted) {
-          console.log('Le compte a été supprimé physiquement de la BDD.');
+          this.toastService.show('Le compte a été supprimé avec succès', 'success');
         } else {
-          console.log('Le compte contenant des transactions a été archivé proprement.');
+          this.toastService.show(
+            'Au moins une transaction est rattachée à ce compte : il a été archivé avec succès',
+            'success',
+          );
         }
       },
-      error: (err) => this.errorMessage.set('Erreur lors de la suppression du compte.'),
+      error: (err) =>
+        this.toastService.show('Une erreur est survenue lors de la suppression', 'error'),
     });
   }
 
@@ -58,8 +64,11 @@ export class AccountListComponent implements OnInit {
     const updatedAccount: Account = { ...account, isDefault: !account.isDefault };
 
     this.accountService.updateAccountByDefault(account.id, updatedAccount).subscribe({
-      next: () => {},
-      error: (err) => this.errorMessage.set('Erreur lors de la modification du compte par défaut.'),
+      next: () => {
+        this.toastService.show('Le changement de compte principal a été effectué.', 'success');
+      },
+      error: (err) =>
+        this.toastService.show('Erreur lors de la modification du compte principal.', 'error'),
     });
   }
 
