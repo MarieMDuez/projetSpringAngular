@@ -16,7 +16,6 @@ export class PaymentMethodFormComponent implements OnInit {
   private toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
-  protected errorMessage = signal<string | null>(null);
 
   protected paymentMethodForm!: FormGroup;
 
@@ -61,7 +60,6 @@ export class PaymentMethodFormComponent implements OnInit {
           this.toastService.show('Moyen de paiement modifié avec succès !', 'success');
           this.paymentMethodForm.reset({ label: '' });
           this.paymentMethodService.editingPaymentMethod.set(null);
-          this.errorMessage.set(null);
         },
         error: (err) => {
           if (err.status == 409) {
@@ -83,7 +81,6 @@ export class PaymentMethodFormComponent implements OnInit {
         next: () => {
           this.toastService.show('Moyen de paiement créé avec succès !', 'success');
           this.paymentMethodForm.reset({ label: '' });
-          this.errorMessage.set(null);
         },
         error: (err) => {
           if (err.status == 409) {

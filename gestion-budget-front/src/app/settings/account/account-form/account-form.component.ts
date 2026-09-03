@@ -19,7 +19,6 @@ export class AccountFormComponent implements OnInit {
   private toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
-  protected errorMessage = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -68,7 +67,6 @@ export class AccountFormComponent implements OnInit {
           this.toastService.show('Compte modifié avec succès !', 'success');
           this.accountService.editingAccount.set(null);
           this.accountForm.reset(accountVide);
-          this.errorMessage.set(null);
         },
         error: (err: HttpErrorResponse) => {
           if (err.status == 409) {
@@ -77,7 +75,10 @@ export class AccountFormComponent implements OnInit {
               'error',
             );
           } else {
-            this.toastService.show(`Une erreur est survenuelors de la création du compte`, 'error');
+            this.toastService.show(
+              `Une erreur est survenue lors de la création du compte`,
+              'error',
+            );
           }
         },
       });
@@ -101,7 +102,6 @@ export class AccountFormComponent implements OnInit {
             isActive: true,
             position: null,
           });
-          this.errorMessage.set(null);
         },
         error: (err: HttpErrorResponse) => {
           if (err.status == 409) {
@@ -110,7 +110,10 @@ export class AccountFormComponent implements OnInit {
               'error',
             );
           } else {
-            this.toastService.show(`Une erreur est survenuelors de la création du compte`, 'error');
+            this.toastService.show(
+              `Une erreur est survenue lors de la création du compte`,
+              'error',
+            );
           }
         },
       });

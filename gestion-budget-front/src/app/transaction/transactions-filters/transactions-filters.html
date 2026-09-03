@@ -5,13 +5,13 @@
     <div class="form-grid-inline">
 
         <!-- 1. Filtres de Date (Année / Mois / Jour) -->
-        <div class="form-group-tracker" style="width: 11%; min-width: 11%;">
+        <div class="form-group-tracker col-date">
             <label>Date (A / M / J)</label>
-            <div class="date-filter-group" style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <div class="date-filter-group">
                 <!-- Année -->
                 <div class="input-wrapper">
                     <input id="filterYear" formControlName="year" type="number" min="2000" max="2200"
-                        placeholder="Année" style="text-align: right;" />
+                        placeholder="Année" class="text-center" />
                     @if (filterForm.get('year')?.value) {
                     <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('year')"
                         title="Effacer">✖</button>
@@ -33,7 +33,7 @@
                 <!-- Jour -->
                 <div class="input-wrapper">
                     <input id="filterDay" formControlName="day" type="number" min="1" max="31" placeholder="Jour"
-                        style="text-align: right;" />
+                        class="text-center" />
                     @if (filterForm.get('day')?.value) {
                     <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('day')"
                         title="Effacer">✖</button>
@@ -43,7 +43,7 @@
         </div>
 
         <!-- 2. Filtre : Compte -->
-        <div class="form-group-tracker" style="width: 12%; min-width: 12%;">
+        <div class="form-group-tracker col-account">
             <label for="filterAccount">Compte</label>
             <div class="input-wrapper">
                 <select appSelectLoop id="filterAccount" formControlName="accountId">
@@ -60,7 +60,7 @@
         </div>
 
         <!-- 3. Filtre : Moyen de Paiement -->
-        <div class="form-group-tracker" style="width: 12%; min-width: 12%;">
+        <div class="form-group-tracker col-payment">
             <label for="filterPayment">Moyen de Paiement</label>
             <div class="input-wrapper">
                 <select appSelectLoop id="filterPayment" formControlName="paymentMethodId">
@@ -77,7 +77,7 @@
         </div>
 
         <!-- 4. Filtre : Catégorie -->
-        <div class="form-group-tracker" style="width: 18%; min-width: 12%;">
+        <div class="form-group-tracker col-category">
             <label for="filterCategory">Catégorie</label>
             <div class="input-wrapper">
                 <select appSelectLoop id="filterCategory" formControlName="categoryId">
@@ -93,10 +93,8 @@
             </div>
         </div>
 
-
-
         <!-- 6 & 7. Filtre : Type de flux (Débit / Crédit combinés) -->
-        <div class="form-group-tracker" style="width: 18%; min-width: 18%;">
+        <div class="form-group-tracker col-flux">
             <label>Type de Flux</label>
             <div class="input-wrapper">
                 <select appSelectLoop formControlName="type">
@@ -112,7 +110,7 @@
         </div>
 
         <!-- 8. Filtre : Récurrence -->
-        <div class="form-group-tracker" style="width: 6%; min-width: 6%;">
+        <div class="form-group-tracker col-recurrence">
             <label>Réc.</label>
             <div class="input-wrapper">
                 <select appSelectLoop formControlName="recurrenceMonths">
@@ -132,7 +130,7 @@
         </div>
 
         <!-- 9. Filtre : Pointage (Checked) -->
-        <div class="form-group-tracker" style="width: 5%; min-width: 5%;">
+        <div class="form-group-tracker col-pointing">
             <label>Pointée</label>
             <div class="input-wrapper">
                 <select appSelectLoop formControlName="isChecked">
@@ -148,20 +146,19 @@
         </div>
 
         <!-- Actions globales : Effacer Tout -->
-        <div style="height: 36px; display: flex; align-items: center;">
-            <button type="button" class="btn-secondary-link" style="color: #ef4444; white-space: nowrap;"
-                (click)="clearAllFilters()">
+        <div class="actions-clear-wrapper">
+            <button type="button" class="btn-secondary-link btn-danger-action" (click)="clearAllFilters()">
                 Effacer les filtres
             </button>
         </div>
 
     </div>
-    <div class="filters-footer-tools">
 
+    <div class="filters-footer-tools">
         <!-- Outil : Limitation d'affichage -->
         <div class="tool-limit-block">
             <label for="limit-select">Limiter l'affichage :</label>
-            <select appSelectLoop id="limit-select" formControlName="limit" style="width: 160px; height: 34px;">
+            <select appSelectLoop id="limit-select" formControlName="limit" class="select-limit">
                 <option [value]="0">Tout afficher</option>
                 <option [value]="50">50 dernières</option>
                 <option [value]="100">100 dernières</option>
@@ -169,5 +166,4 @@
             </select>
         </div>
     </div>
-
 </form>

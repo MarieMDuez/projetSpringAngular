@@ -5,6 +5,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { Account } from '../account.model';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('AccountFormComponent', () => {
   let component: AccountFormComponent;
@@ -13,6 +14,7 @@ describe('AccountFormComponent', () => {
   // Isolation du State global via des stubs de signaux
   const mockAllAccounts = signal<Account[]>([]);
   const mockEditingAccount: WritableSignal<Account | null> = signal<Account | null>(null);
+  const mockToastService: { show: Mock } = { show: vi.fn() };
 
   const mockAccountService: Partial<AccountService> = {
     allAccounts: mockAllAccounts,
@@ -28,12 +30,15 @@ describe('AccountFormComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AccountFormComponent],
-      providers: [{ provide: AccountService, useValue: mockAccountService }],
+      providers: [
+        { provide: AccountService, useValue: mockAccountService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AccountFormComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Déclenche ngOnInit et l'initialisation du formulaire
+    fixture.detectChanges();
   });
 
   it('should create the component and initialize the reactive form', () => {
@@ -95,7 +100,7 @@ describe('AccountFormComponent', () => {
 
     expect(mockAccountService.createAccount).toHaveBeenCalled();
     expect(component['accountForm'].get('label')?.value).toBe(''); // Formulaire réinitialisé
-    expect(component['errorMessage']()).toBeNull(); // Correction Vitest
+    expect(mockToastService.show).toHaveBeenCalledWith('Compte créé avec succès !', 'success');
   });
 
   it('should call updateAccount API and clear state on a valid edition submit', async () => {
@@ -127,7 +132,27 @@ describe('AccountFormComponent', () => {
     component['accountForm'].patchValue({ label: 'Erreur Compte', initialBalance: 50 });
     component['onSubmit']();
 
-    expect(component['errorMessage']()).toBe('Erreur lors de la création du compte.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue lors de la création du compte',
+      'error',
+    );
+  });
+
+  it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
+    // GIVEN : L'API renvoie un statut 409
+    const errorResponse = { status: 409 };
+    (mockAccountService.createAccount as Mock).mockReturnValue(throwError(() => errorResponse));
+
+    component['accountForm'].patchValue({ label: 'livret A' });
+
+    // WHEN
+    component['onSubmit']();
+
+    // THEN
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue : ce nom de compte existe déjà',
+      'error',
+    );
   });
 
   it('should clear form data and reset editing signal on cancellation', async () => {

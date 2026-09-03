@@ -19,8 +19,6 @@ export class AccountListComponent implements OnInit {
 
   protected accounts = this.accountService.allAccounts;
 
-  protected errorMessage = signal<string | null>(null);
-
   ngOnInit() {}
 
   protected onEdit(account: Account): void {

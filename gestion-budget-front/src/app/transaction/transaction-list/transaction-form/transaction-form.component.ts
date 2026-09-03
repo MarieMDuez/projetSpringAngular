@@ -22,7 +22,6 @@ export class TransactionFormComponent implements OnInit {
   private myFormBuilder = inject(FormBuilder);
   private toastService = inject(ToastService);
 
-  protected errorMessage = signal<string | null>(null);
   protected accounts = this.accountService.activeAccounts;
   protected paymentMethods = this.paymentMethodsService.activePaymentMethods;
   protected categories = this.categoryService.activeCategories;
@@ -126,7 +125,6 @@ export class TransactionFormComponent implements OnInit {
           (this.toastService.show('Transaction mise à jour !', 'success'),
             this.transactionForm.reset(transactionVide));
           this.transactionService.transactionToEdit.set(null);
-          this.errorMessage.set(null);
         },
         error: () =>
           this.toastService.show('Erreur lors de la mise à jour de la transaction', 'error'),
@@ -137,7 +135,6 @@ export class TransactionFormComponent implements OnInit {
           (this.toastService.show('Transaction enregistrée !', 'success'),
             this.transactionForm.reset(transactionVide));
           this.transactionService.transactionToEdit.set(null);
-          this.errorMessage.set(null);
         },
         error: () =>
           this.toastService.show("Erreur lors de l'enregistrement de la transaction", 'error'),

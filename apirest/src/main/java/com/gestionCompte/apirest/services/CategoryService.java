@@ -34,6 +34,8 @@ public class CategoryService {
 	}
 
 	public Category createCategory(Category category) {
+		String cleanedLabel = category.getLabel().trim().replaceAll("\\s+", " ");
+		category.setLabel(cleanedLabel);
 		if(categoryRepository.existsByLabelIgnoreCase(category.getLabel())) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
 		}
@@ -43,6 +45,9 @@ public class CategoryService {
 	public Category updateCategory(Long id, Category categoryDetails) {
 		Category existingCategory = categoryRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
+		
+		String cleanedLabel = categoryDetails.getLabel().trim().replaceAll("\\s+", " ");
+		categoryDetails.setLabel(cleanedLabel);
 		
 		if (!existingCategory.getLabel().equalsIgnoreCase(categoryDetails.getLabel()) 
 		        && categoryRepository.existsByLabelIgnoreCase(categoryDetails.getLabel())) {

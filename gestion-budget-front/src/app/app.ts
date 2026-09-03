@@ -31,7 +31,7 @@ export class App implements OnInit {
       .subscribe({
         next: () => {
           console.log(
-            "🎯 Initialisation de l'application réussie : toutes les données sont synchronisées !",
+            "Initialisation de l'application réussie : toutes les données sont synchronisées !",
           );
         },
         error: (err) => {

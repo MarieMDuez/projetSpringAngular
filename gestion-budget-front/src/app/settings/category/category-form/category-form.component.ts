@@ -14,7 +14,6 @@ export class CategoryFormComponent implements OnInit {
   private myFormBuilder = inject(FormBuilder);
   private toastService = inject(ToastService);
   protected categoryForm!: FormGroup;
-  protected errorMessage = signal<string | null>(null);
 
   protected categoryService = inject(CategoryService);
   protected categories = this.categoryService.allCategories;
@@ -53,7 +52,6 @@ export class CategoryFormComponent implements OnInit {
           this.toastService.show('Catégorie modifié avec succès !', 'success');
           this.categoryForm.reset(categoryVide);
           this.categoryService.editingCategory.set(null);
-          this.errorMessage.set(null);
         },
         error: (err) => {
           if (err.status == 409) {
@@ -75,7 +73,6 @@ export class CategoryFormComponent implements OnInit {
         next: () => {
           this.toastService.show('Catégorie créée avec succès !', 'success');
           this.categoryForm.reset(categoryVide);
-          this.errorMessage.set(null);
         },
         error: (err) => {
           if (err.status == 409) {

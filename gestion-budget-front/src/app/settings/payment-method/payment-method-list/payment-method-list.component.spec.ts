@@ -6,6 +6,7 @@ import { signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('PaymentMethodListComponent', () => {
   let component: PaymentMethodListComponent;
@@ -16,6 +17,9 @@ describe('PaymentMethodListComponent', () => {
   const mockEditingPaymentMethod = signal<PaymentMethod | null>(null);
   // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
+  const mockToastService: { show: Mock } = { show: vi.fn() };
+
   const mockPaymentMethodService: Partial<PaymentMethodService> = {
     allPaymentMethods: mockAllPaymentMethods,
     editingPaymentMethod: mockEditingPaymentMethod,
@@ -30,7 +34,10 @@ describe('PaymentMethodListComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [PaymentMethodListComponent],
-      providers: [{ provide: PaymentMethodService, useValue: mockPaymentMethodService }],
+      providers: [
+        { provide: PaymentMethodService, useValue: mockPaymentMethodService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
       schemas: [NO_ERRORS_SCHEMA], // Évite la compilation intrusive du sous-composant formulaire
     }).compileComponents();
 
@@ -64,7 +71,10 @@ describe('PaymentMethodListComponent', () => {
     component['onDelete'](targetMethod);
 
     expect(mockPaymentMethodService.deletePaymentMethod).toHaveBeenCalledWith(14);
-    expect(component['errorMessage']()).toBeNull();
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Le moyen de paiement a été supprimé avec succès',
+      'success',
+    );
   });
 
   it('should interrupt deletion routine and abort API request if user cancels confirm window', () => {
@@ -107,7 +117,9 @@ describe('PaymentMethodListComponent', () => {
     );
 
     component['onDelete'](targetMethod);
-
-    expect(component['errorMessage']()).toBe('Erreur lors de la suppression du compte.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue lors de la suppression',
+      'error',
+    );
   });
 });

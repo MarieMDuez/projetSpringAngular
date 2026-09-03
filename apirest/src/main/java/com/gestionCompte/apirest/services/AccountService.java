@@ -40,7 +40,9 @@ public class AccountService {
 	}
 
 	public Account createAccount(Account account) {
-		if(accountRepository.existsByLabelIgnoreCase(account.getLabel())) {
+		String cleanedLabel = account.getLabel().trim().replaceAll("\\s+", " ");
+		account.setLabel(cleanedLabel);
+		if(accountRepository.existsByLabelIgnoreCase(cleanedLabel)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
 		}
 		if (account.isDefault()) {
@@ -54,6 +56,9 @@ public class AccountService {
 	public Account updateAccount(Long id, Account accountDetails) {
 		Account existingAccount = accountRepository.findById(id).orElseThrow(
 				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found with id: " + id));
+		
+		String cleanedLabel = accountDetails.getLabel().trim().replaceAll("\\s+", " ");
+		accountDetails.setLabel(cleanedLabel);
 		
 		if (!existingAccount.getLabel().equalsIgnoreCase(accountDetails.getLabel()) 
 		        && accountRepository.existsByLabelIgnoreCase(accountDetails.getLabel())) {

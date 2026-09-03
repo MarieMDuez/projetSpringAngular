@@ -1,223 +1,40 @@
-
-caption {
-  padding: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #4a5568;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: left;
-}
-
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 16px;
-  background-color: #ffffff;
-  
-  td {
-    padding: 10px 12px;
-    vertical-align: middle;
-    border-bottom: 1px solid #e2e8f0;
-  }
-}
-
-
-.filter-input, .filter-select {
-  width: 100%;
+// Alignement global de la ligne d'actions
+.actions-clear-wrapper {
   height: 36px;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  color: #2d3748;
-  background-color: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  outline: none;
-  transition: all 0.2s ease-in-out;
-
-  &:focus {
-    border-color: #4299e1;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-  }
+  display: flex;
+  align-items: center;
 }
 
+.btn-danger-action {
+  color: #ef4444;
+  white-space: nowrap;
+}
 
+// Utilitaire d'alignement de texte
+.text-center {
+  text-align: center;
+}
+
+// Structure interne du groupe Date
 .date-filter-group {
   display: flex;
-  gap: 6px;
-  
-  .filter-input {
-    flex: 1;
-    min-width: 0;
-  }
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-
-.text-right {
-  text-align: right;
+// Sélecteur de limite dans le footer
+.select-limit {
+  width: 160px;
+  height: 34px;
 }
 
-.text-muted {
-  color: #a0aec0;
-}
-
-.text-small {
-  font-size: 0.8rem;
-}
-
-
-.filter-actions {
-  display: flex;
-  justify-content: flex-end;
-
-  .btn-clear {
-    height: 36px;
-    padding: 0 16px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #e53e3e;
-    background-color: #fff5f5;
-    border: 1px solid #fed7d7;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-
-    &:hover {
-      color: #ffffff;
-      background-color: #e53e3e;
-      border-color: #e53e3e;
-    }
-
-    &:active {
-      transform: scale(0.98);
-    }
-  }
-
-  
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-
-
-
-
-  .filter-select {
-    padding-right: 28px !important; 
-  }
-}
-
-
-.btn-clear-unit {
-  position: absolute;
-  right: 22px;
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 0.8rem;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-  color: #ef4444;
-
-}
-
-
-.quick-generate-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  padding: 8px 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-  .generate-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4a5568;
-  }
-}
-
-
-.quick-generate-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: nowrap;
-
-  select, input[type="number"] {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 10px 16px;
-    color: #2d3748;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-    &:focus {
-      border-color: #cbd5e1;
-      box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.2);
-    }
-  }
-
-
-
-
-  .input-wrapper {
-    input[type="number"] {
-      width: 100px;
-      text-align: center;
-      
-
-      &::-webkit-outer-spin-button,
-      &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-      -moz-appearance: textfield;
-    }
-  }
-
-
-  .btn-trigger-generate {
-     background-color: #f0f7ff; 
-    border: 1px solid #bfdbfe;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #4a5568;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-    &:hover:not(:disabled) {
-      background-color: #f8fafc;
-      color: #1a202c;
-      border-color: #cbd5e1;
-    }
-
-    &:active:not(:disabled) {
-      background-color: #f1f5f9;
-    }
-
-
-    &:disabled {
-      background-color: #f7fafc;
-      color: #a0aec0;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-  }
+// Dispatch chirurgical des colonnes (Gestion propre de la grille inline)
+.form-group-tracker {
+  &.col-date       { width: 11%; min-width: 11%; }
+  &.col-account    { width: 12%; min-width: 12%; }
+  &.col-payment    { width: 12%; min-width: 12%; }
+  &.col-category   { width: 18%; min-width: 12%; } // Garde le ratio original du template
+  &.col-flux       { width: 18%; min-width: 18%; }
+  &.col-recurrence { width: 8%;  min-width: 8%;  }
+  &.col-pointing   { width: 5%;  min-width: 5%;  }
 }

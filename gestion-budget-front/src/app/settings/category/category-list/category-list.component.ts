@@ -17,7 +17,6 @@ export class CategoryListComponent implements OnInit {
 
   protected categories = this.categoryService.allCategories;
 
-  protected errorMessage = signal<string | null>(null);
   protected selectedCategory = signal<Category | null>(null);
   ngOnInit(): void {}
 

@@ -12,6 +12,7 @@ import { Transaction } from '../../transaction.model';
 import { Account } from '../../../settings/account/account.model';
 import { Category } from '../../../settings/category/category.model';
 import { PaymentMethod } from '../../../settings/payment-method/payment-method.model';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('TransactionFormComponent', () => {
   let component: TransactionFormComponent;
@@ -21,6 +22,8 @@ describe('TransactionFormComponent', () => {
   let mockAccountService: Partial<AccountService>;
   let mockCategoryService: Partial<CategoryService>;
   let mockPaymentMethodService: Partial<PaymentMethodService>;
+
+  const mockToastService: { show: Mock } = { show: vi.fn() };
 
   // Signal réactif pour piloter l'état d'édition à la volée
   let transactionToEditSignal: WritableSignal<Transaction | null>;
@@ -33,6 +36,7 @@ describe('TransactionFormComponent', () => {
       createTransaction: vi.fn().mockReturnValue(of({})),
       updateTransaction: vi.fn().mockReturnValue(of({})),
       generateRecurrentTransactions: vi.fn().mockReturnValue(of({})),
+      allTransactionsSignal: signal([]),
     };
 
     mockAccountService = {
@@ -60,6 +64,7 @@ describe('TransactionFormComponent', () => {
         { provide: AccountService, useValue: mockAccountService },
         { provide: CategoryService, useValue: mockCategoryService },
         { provide: PaymentMethodService, useValue: mockPaymentMethodService },
+        { provide: ToastService, useValue: mockToastService },
       ],
       schemas: [NO_ERRORS_SCHEMA], // Isole le template contre les directives de navigation ou CSS tierces
     }).compileComponents();
@@ -168,7 +173,10 @@ describe('TransactionFormComponent', () => {
 
     component['onSubmit']();
 
-    expect(component['errorMessage']()).toBe('Erreur lors de la création de la transaction.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      "Erreur lors de l'enregistrement de la transaction",
+      'error',
+    );
   });
 
   it('should dispatch request to generate scheduled rows on valid calendar submission', () => {

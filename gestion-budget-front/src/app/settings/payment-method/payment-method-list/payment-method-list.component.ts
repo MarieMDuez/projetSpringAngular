@@ -18,8 +18,6 @@ export class PaymentMethodListComponent {
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
-  protected errorMessage = signal<string | null>(null);
-
   onEdit(paymentMethod: PaymentMethod) {
     if (paymentMethod.id != null) this.paymentMethodService.editingPaymentMethod.set(paymentMethod);
     /*Pour remonter au formulaire qui s'auto-rempli*/

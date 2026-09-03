@@ -14,6 +14,6 @@ export class ToastService {
 
     setTimeout(() => {
       this.toasts.update((current) => current.filter((t) => t.id !== id));
-    }, 3000);
+    }, 8000);
   }
 }

@@ -6,6 +6,7 @@ import { signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('CategoryListComponent', () => {
   let component: CategoryListComponent;
@@ -14,6 +15,8 @@ describe('CategoryListComponent', () => {
   // Isolation du State global de l'application via des stubs
   const mockAllCategories = signal<Category[]>([]);
   const mockEditingCategory = signal<Category | null>(null);
+  const mockToastService: { show: Mock } = { show: vi.fn() };
+
   // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   const mockCategoryService: Partial<CategoryService> = {
@@ -30,7 +33,10 @@ describe('CategoryListComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [CategoryListComponent],
-      providers: [{ provide: CategoryService, useValue: mockCategoryService }],
+      providers: [
+        { provide: CategoryService, useValue: mockCategoryService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
       schemas: [NO_ERRORS_SCHEMA], // Empêche l'analyse du template de <app-category-form> dans ce test
     }).compileComponents();
 
@@ -59,7 +65,10 @@ describe('CategoryListComponent', () => {
     component['onDelete'](targetCategory);
 
     expect(mockCategoryService.deleteCategory).toHaveBeenCalledWith(3);
-    expect(component['errorMessage']()).toBeNull();
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'La catégorie a été supprimé avec succès',
+      'success',
+    );
   });
 
   it('should abort deletion protocol if user cancels the native confirm window', () => {
@@ -103,6 +112,9 @@ describe('CategoryListComponent', () => {
 
     component['onDelete'](targetCategory);
 
-    expect(component['errorMessage']()).toBe('Erreur lors de la suppression du compte.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue lors de la suppression',
+      'error',
+    );
   });
 });

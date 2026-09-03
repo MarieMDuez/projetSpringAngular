@@ -6,6 +6,7 @@ import { signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('AccountListComponent', () => {
   let component: AccountListComponent;
@@ -14,6 +15,9 @@ describe('AccountListComponent', () => {
   // Isolation du State global via des stubs
   const mockAllAccounts = signal<Account[]>([]);
   const mockEditingAccount = signal<Account | null>(null);
+
+  const mockToastService: { show: Mock } = { show: vi.fn() };
+
   // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   const mockAccountService: Partial<AccountService> = {
@@ -31,7 +35,10 @@ describe('AccountListComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AccountListComponent],
-      providers: [{ provide: AccountService, useValue: mockAccountService }],
+      providers: [
+        { provide: AccountService, useValue: mockAccountService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
       schemas: [NO_ERRORS_SCHEMA], // Ignore le composant enfant <app-account-form> lors du rendu du test
     }).compileComponents();
 
@@ -74,7 +81,10 @@ describe('AccountListComponent', () => {
     component['onDelete'](targetAccount);
 
     expect(mockAccountService.deleteAccount).toHaveBeenCalledWith(42);
-    expect(component['errorMessage']()).toBeNull();
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Au moins une transaction est rattachée à ce compte : il a été archivé avec succès',
+      'success',
+    );
   });
 
   it('should handle cancel action on delete dialog without triggering API call', () => {
@@ -166,8 +176,9 @@ describe('AccountListComponent', () => {
 
     component['toggleAccountByDefault'](targetAccount);
 
-    expect(component['errorMessage']()).toBe(
-      'Erreur lors de la modification du compte par défaut.',
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Erreur lors de la modification du compte principal.',
+      'error',
     );
   });
 });

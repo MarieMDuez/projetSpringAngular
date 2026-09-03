@@ -157,50 +157,53 @@ public class TransactionService {
 		List<Transaction> recurrentTransactions = transactionRepository.findByRecurrenceMonthsGreaterThan(0);
 
 		for (Transaction transaction : recurrentTransactions) {
-			int rec = transaction.getRecurrenceMonths();
-			LocalDate dateTransaction = transaction.getEmissionDate();
+			if (transaction.getAccount().isActive() && transaction.getCategory().isActive() && transaction.getPaymentMethod().isActive()) {
+				int rec = transaction.getRecurrenceMonths();
+				LocalDate dateTransaction = transaction.getEmissionDate();
 
-			int expectedParentMonth = targetMonth - rec;
-			int expedtedParentYear = targetYear;
+				int expectedParentMonth = targetMonth - rec;
+				int expedtedParentYear = targetYear;
 
-			if (expectedParentMonth <= 0) {
-				expectedParentMonth += 12;
-				expedtedParentYear -= 1; // On recule d'une année si on passe sous janvier
-			}
-
-			if (dateTransaction.getMonthValue() == expectedParentMonth
-					&& dateTransaction.getYear() == expedtedParentYear) {
-
-				int targetDay = dateTransaction.getDayOfMonth(); // Si on a déjà la transaction qui a le parent ID on
-																	// arrête là
-																	// Si non on continue
-				int maxDayInMonth = LocalDate.of(targetYear, targetMonth, 1).lengthOfMonth();
-				int safeDay = Math.min(targetDay, maxDayInMonth);
-
-				LocalDate targetDate = LocalDate.of(targetYear, targetMonth, safeDay);
-
-				boolean isRecExist = transactionRepository
-						.existsByParentTransactionIdAndEmissionDate(transaction.getId(), targetDate);
-
-				if (!isRecExist) {
-					Transaction newTransaction = new Transaction();
-
-					newTransaction.setAccount(transaction.getAccount());
-					newTransaction.setAmount(transaction.getAmount());
-					newTransaction.setCategory(transaction.getCategory());
-					newTransaction.setDescription(transaction.getDescription());
-					newTransaction.setParentTransactionId(transaction.getId());
-					newTransaction.setEmissionDate(targetDate);
-					newTransaction.setPaymentMethod(transaction.getPaymentMethod());
-					newTransaction.setRecurrenceMonths(transaction.getRecurrenceMonths());
-					newTransaction.setType(transaction.getType());
-					newTransaction.setAlertTriggered(false);
-					newTransaction.setChecked(false);
-
-					createTransaction(newTransaction);
+				if (expectedParentMonth <= 0) {
+					expectedParentMonth += 12;
+					expedtedParentYear -= 1; // On recule d'une année si on passe sous janvier
 				}
-			}
 
+				if (dateTransaction.getMonthValue() == expectedParentMonth
+						&& dateTransaction.getYear() == expedtedParentYear) {
+
+					int targetDay = dateTransaction.getDayOfMonth(); // Si on a déjà la transaction qui a le parent ID
+																		// on
+																		// arrête là
+																		// Si non on continue
+					int maxDayInMonth = LocalDate.of(targetYear, targetMonth, 1).lengthOfMonth();
+					int safeDay = Math.min(targetDay, maxDayInMonth);
+
+					LocalDate targetDate = LocalDate.of(targetYear, targetMonth, safeDay);
+
+					boolean isRecExist = transactionRepository
+							.existsByParentTransactionIdAndEmissionDate(transaction.getId(), targetDate);
+
+					if (!isRecExist) {
+						Transaction newTransaction = new Transaction();
+
+						newTransaction.setAccount(transaction.getAccount());
+						newTransaction.setAmount(transaction.getAmount());
+						newTransaction.setCategory(transaction.getCategory());
+						newTransaction.setDescription(transaction.getDescription());
+						newTransaction.setParentTransactionId(transaction.getId());
+						newTransaction.setEmissionDate(targetDate);
+						newTransaction.setPaymentMethod(transaction.getPaymentMethod());
+						newTransaction.setRecurrenceMonths(transaction.getRecurrenceMonths());
+						newTransaction.setType(transaction.getType());
+						newTransaction.setAlertTriggered(false);
+						newTransaction.setChecked(false);
+
+						createTransaction(newTransaction);
+					}
+				}
+
+			}
 		}
 
 	}

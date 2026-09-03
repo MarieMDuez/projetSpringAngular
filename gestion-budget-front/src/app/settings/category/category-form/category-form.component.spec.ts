@@ -5,6 +5,7 @@ import { signal, WritableSignal } from '@angular/core';
 import { Category } from '../category.model';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('CategoryFormComponent', () => {
   let component: CategoryFormComponent;
@@ -21,14 +22,20 @@ describe('CategoryFormComponent', () => {
     updateCategory: vi.fn(),
   };
 
+  const mockToastService: { show: Mock } = { show: vi.fn() };
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockToastService.show.mockReset();
     mockAllCategories.set([]);
     mockEditingCategory.set(null);
 
     await TestBed.configureTestingModule({
       imports: [CategoryFormComponent],
-      providers: [{ provide: CategoryService, useValue: mockCategoryService }],
+      providers: [
+        { provide: CategoryService, useValue: mockCategoryService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryFormComponent);
@@ -87,7 +94,7 @@ describe('CategoryFormComponent', () => {
       }),
     );
     expect(component['categoryForm'].get('label')?.value).toBe(''); // Reset vérifié
-    expect(component['errorMessage']()).toBeNull();
+    expect(mockToastService.show).toHaveBeenCalledWith('Catégorie créée avec succès !', 'success');
   });
 
   it('should call updateCategory API and clear state on valid modification submit', async () => {
@@ -112,7 +119,26 @@ describe('CategoryFormComponent', () => {
     component['categoryForm'].patchValue({ label: 'Énergie' });
     component['onSubmit']();
 
-    expect(component['errorMessage']()).toBe('Erreur lors de la création de la catégorie.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue lors de la création de la catégorie',
+      'error',
+    );
+  });
+  it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
+    // GIVEN : L'API renvoie un statut 409
+    const errorResponse = { status: 409 };
+    (mockCategoryService.createCategory as Mock).mockReturnValue(throwError(() => errorResponse));
+
+    component['categoryForm'].patchValue({ label: 'Énergie' });
+
+    // WHEN
+    component['onSubmit']();
+
+    // THEN
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue : ce nom de catégorie existe déjà',
+      'error',
+    );
   });
 
   it('should clear form controls and purge editing signal upon edit cancellation', async () => {

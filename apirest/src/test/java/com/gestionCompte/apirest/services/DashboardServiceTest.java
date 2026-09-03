@@ -63,12 +63,14 @@ class DashboardServiceTest {
         debitTransaction.setAmount(new BigDecimal("200.00"));
         debitTransaction.setEmissionDate(LocalDate.now().minusDays(1));
         debitTransaction.setChecked(true);
+        debitTransaction.setAccount(mockAccount1); 
 
         creditTransaction = new Transaction();
         creditTransaction.setType(TransactionType.CREDIT);
         creditTransaction.setAmount(new BigDecimal("300.00"));
         creditTransaction.setEmissionDate(LocalDate.now().plusDays(2));
         creditTransaction.setChecked(false);
+        creditTransaction.setAccount(mockAccount1); 
     }
 
     @Test
@@ -147,5 +149,38 @@ class DashboardServiceTest {
         assertThrows(ResponseStatusException.class, () -> {
             dashboardService.getDynamicBalance(unknownId);
         });
+    }
+    
+    @Test
+    void getDynamicBalance_WithAllAccounts_ShouldIgnoreInactiveAccountTransactions() {
+        // Given : Un compte inactif avec une transaction
+        Account inactiveAccount = new Account();
+        inactiveAccount.setId(3L);
+        inactiveAccount.setInitialBalance(new BigDecimal("999.00"));
+        inactiveAccount.setActive(false); // 👈 ARCHIVÉ
+
+        Transaction inactiveTransaction = new Transaction();
+        inactiveTransaction.setType(TransactionType.CREDIT);
+        inactiveTransaction.setAmount(new BigDecimal("1000.00"));
+        inactiveTransaction.setChecked(true);
+        inactiveTransaction.setAccount(inactiveAccount); // Rattaché au compte inactif
+
+        // Le repository ne renvoie que les comptes actifs (le solde initial de 999.00 est ignoré)
+        when(accountRepository.findByIsActiveTrue()).thenReturn(List.of(mockAccount1, mockAccount2));
+        
+        // Le service de transaction renvoie tout (y compris celle du compte archivé)
+        when(transactionService.getFilteredTransactions(
+                isNull(Long.class), isNull(Long.class), isNull(Long.class), isNull(Integer.class), 
+                isNull(Integer.class), isNull(Integer.class), isNull(BigDecimal.class), isNull(BigDecimal.class), 
+                isNull(String.class), isNull(Boolean.class), isNull(Integer.class), isNull(Integer.class)
+        )).thenReturn(List.of(debitTransaction, inactiveTransaction));
+
+        // When
+        BalanceDashboardDto dto = dashboardService.getDynamicBalance(null);
+
+        // Then
+        assertNotNull(dto);
+        assertEquals(new BigDecimal("1500.00"), dto.getInitialBalance()); // 1000 + 500 (le 999 est ignoré !)
+        assertEquals(new BigDecimal("1300.00"), dto.getCurrentBalance()); // 1500 - 200 (les 1000 du compte inactif sont ignorés !)
     }
 }

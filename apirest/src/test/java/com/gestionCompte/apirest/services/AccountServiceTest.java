@@ -118,12 +118,29 @@ public class AccountServiceTest {
 
     @Test
     public void should_throw_404_not_found_when_account_id_does_not_exist() {
-        // Given : findById ne renvoie rien
         when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When & Then : On s'assure que Spring lève la ResponseStatusException attendue
         assertThatThrownBy(() -> accountService.getAccountById(999L))
             .isInstanceOf(ResponseStatusException.class)
             .hasMessageContaining("Account not found with id");
     }
+    
+    @Test
+    void should_throw_conflict_exception_when_account_label_already_exists_with_spaces() {
+        // Given
+        Account accountToCreate = new Account();
+        accountToCreate.setLabel("   Mon   Compte  ");
+
+        // On simule le fait que le repository trouve la version NETTOYÉE "Mon Compte"
+        when(accountRepository.existsByLabelIgnoreCase("Mon Compte")).thenReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> accountService.createAccount(accountToCreate))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("Ce nom existe déjà !");
+
+        // On vérifie que la méthode de sauvegarde n'a JAMAIS été appelée
+        verify(accountRepository, never()).save(any(Account.class));
+    }
+
 }

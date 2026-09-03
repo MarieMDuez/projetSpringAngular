@@ -4,7 +4,7 @@
         <div class="select-wrapper">
             <select id="scopeAccountSelect" [ngModel]="transactionService.selectedAccountIdFilter()"
                 (ngModelChange)="onAccountScopeChange($event)" class="scope-select">
-                <option [ngValue]="null">🌍 Tous les comptes bancaires</option>
+                <option [ngValue]="null">🌍 Tous les comptes bancaires <strong>actifs</strong></option>
                 @for (acc of accountService.allAccounts(); track acc.id) {
                 <option [ngValue]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
                 }

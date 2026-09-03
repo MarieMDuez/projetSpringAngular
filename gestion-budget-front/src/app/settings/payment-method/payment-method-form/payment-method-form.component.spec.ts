@@ -5,6 +5,7 @@ import { PaymentMethod } from '../payment-method.model';
 import { signal, WritableSignal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('PaymentMethodFormComponent', () => {
   let component: PaymentMethodFormComponent;
@@ -14,6 +15,8 @@ describe('PaymentMethodFormComponent', () => {
   const mockAllPaymentMethods = signal<PaymentMethod[]>([]);
   const mockEditingPaymentMethod: WritableSignal<PaymentMethod | null> =
     signal<PaymentMethod | null>(null);
+
+  const mockToastService: { show: Mock } = { show: vi.fn() };
 
   const mockPaymentMethodService: Partial<PaymentMethodService> = {
     allPaymentMethods: mockAllPaymentMethods,
@@ -29,7 +32,10 @@ describe('PaymentMethodFormComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [PaymentMethodFormComponent],
-      providers: [{ provide: PaymentMethodService, useValue: mockPaymentMethodService }],
+      providers: [
+        { provide: PaymentMethodService, useValue: mockPaymentMethodService },
+        { provide: ToastService, useValue: mockToastService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaymentMethodFormComponent);
@@ -93,7 +99,10 @@ describe('PaymentMethodFormComponent', () => {
       }),
     );
     expect(component['paymentMethodForm'].get('label')?.value).toBe(''); // Formulaire réinitialisé
-    expect(component['errorMessage']()).toBeNull();
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Moyen de paiement créé avec succès !',
+      'success',
+    );
   });
 
   it('should call updatePaymentMethod API and clear state on valid modification submit', async () => {
@@ -126,7 +135,29 @@ describe('PaymentMethodFormComponent', () => {
     component['paymentMethodForm'].patchValue({ label: 'Paypal' });
     component['onSubmit']();
 
-    expect(component['errorMessage']()).toBe('Erreur lors de la création du moyen de paiement.');
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue lors de la création du moyen de paiement',
+      'error',
+    );
+  });
+
+  it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
+    // GIVEN : L'API renvoie un statut 409
+    const errorResponse = { status: 409 };
+    (mockPaymentMethodService.createPaymentMethod as Mock).mockReturnValue(
+      throwError(() => errorResponse),
+    );
+
+    component['paymentMethodForm'].patchValue({ label: 'espèces' });
+
+    // WHEN
+    component['onSubmit']();
+
+    // THEN
+    expect(mockToastService.show).toHaveBeenCalledWith(
+      'Une erreur est survenue : ce nom de moyen de paiement existe déjà',
+      'error',
+    );
   });
 
   it('should clear form controls and purge editing signal upon edit cancellation', async () => {

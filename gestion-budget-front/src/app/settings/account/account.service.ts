@@ -72,9 +72,19 @@ export class AccountService {
 
   deleteAccount(id: number): Observable<boolean> {
     return this.http.delete<boolean>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => {
-        // Le service nettoie le State global en filtrant l'ID supprimé
-        this.allAccountsSignal.update((current) => current.filter((a) => a.id !== id));
+      tap((isHardDelete) => {
+        if (!isHardDelete) {
+          // Le service nettoie le State global en filtrant l'ID supprimé
+          this.allAccountsSignal.update((current) =>
+            current.map((account) =>
+              account.id === id ? { ...account, isActive: false } : account,
+            ),
+          );
+        } else {
+          this.allAccountsSignal.update((current) =>
+            current.filter((account) => account.id !== id),
+          );
+        }
       }),
     );
   }
