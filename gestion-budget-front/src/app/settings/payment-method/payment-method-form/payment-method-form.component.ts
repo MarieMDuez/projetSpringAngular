@@ -53,12 +53,19 @@ export class PaymentMethodFormComponent implements OnInit {
       isActive: true,
       position: formData.position,
     };
+
+    const emptyPaymentMethod = {
+      label: null,
+      isActive: true,
+      position: null,
+    };
+
     if (currentId != null) {
       paymentMethod.id = currentId;
       this.paymentMethodService.updatePaymentMethod(currentId, paymentMethod).subscribe({
         next: () => {
           this.toastService.show('Moyen de paiement modifié avec succès !', 'success');
-          this.paymentMethodForm.reset({ label: '' });
+          this.paymentMethodForm.reset(emptyPaymentMethod);
           this.paymentMethodService.editingPaymentMethod.set(null);
         },
         error: (err) => {
@@ -69,7 +76,7 @@ export class PaymentMethodFormComponent implements OnInit {
             );
           } else {
             this.toastService.show(
-              `Une erreur est survenue lors de la création du moyen de paiement`,
+              `Une erreur est survenue lors de la modification du moyen de paiement`,
               'error',
             );
           }
@@ -100,7 +107,12 @@ export class PaymentMethodFormComponent implements OnInit {
   }
 
   public onCancelEdit(): void {
-    this.paymentMethodForm.reset({ label: '' });
+    const emptyPaymentMethod = {
+      label: null,
+      isActive: true,
+      position: null,
+    };
+    this.paymentMethodForm.reset(emptyPaymentMethod);
     this.paymentMethodService.editingPaymentMethod.set(null);
   }
 }

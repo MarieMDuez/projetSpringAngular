@@ -76,7 +76,7 @@ export class AccountFormComponent implements OnInit {
             );
           } else {
             this.toastService.show(
-              `Une erreur est survenue lors de la création du compte`,
+              `Une erreur est survenue lors de la modification du compte`,
               'error',
             );
           }

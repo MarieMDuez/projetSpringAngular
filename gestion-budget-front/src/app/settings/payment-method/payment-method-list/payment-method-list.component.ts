@@ -19,6 +19,8 @@ export class PaymentMethodListComponent {
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
   onEdit(paymentMethod: PaymentMethod) {
+    console.log('on edite');
+
     if (paymentMethod.id != null) this.paymentMethodService.editingPaymentMethod.set(paymentMethod);
     /*Pour remonter au formulaire qui s'auto-rempli*/
     const formElement = document.getElementById('editForm');

@@ -45,7 +45,7 @@ export class CategoryFormComponent implements OnInit {
       isActive: true,
       position: formData.position,
     };
-    const categoryVide = { id: null, label: '', isActive: true, position: null };
+    const categoryVide = { id: null, label: null, isActive: true, position: null };
     if (currentId != null) {
       this.categoryService.updateCategory(currentId, cat).subscribe({
         next: () => {
@@ -101,7 +101,7 @@ export class CategoryFormComponent implements OnInit {
   }
 
   public onCancelEdit(): void {
-    const categoryVide = { id: null, label: '', isActive: true, position: null };
+    const categoryVide = { id: null, label: null, isActive: true, position: null };
 
     this.categoryService.editingCategory.set(null);
     this.categoryForm.reset(categoryVide);
