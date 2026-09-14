@@ -1,16 +1,30 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { TitleCasePipe } from '@angular/common';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AccountFormComponent } from '../../../settings/account/account-form/account-form.component';
 import { AccountService } from '../../../settings/account/account.service';
+import { CategoryFormComponent } from '../../../settings/category/category-form/category-form.component';
 import { CategoryService } from '../../../settings/category/category.service';
+import { PaymentMethodFormComponent } from '../../../settings/payment-method/payment-method-form/payment-method-form.component';
 import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
+import { SelectLoopDirective } from '../../../shared/directives/select-loop.directive';
+import { ModalComponent } from '../../../shared/modal/modal.component';
 import { Transaction } from '../../transaction.model';
 import { TransactionService } from '../../transaction.service';
-import { SelectLoopDirective } from '../../../shared/directives/select-loop.directive';
-import { TitleCasePipe } from '@angular/common';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 @Component({
   selector: 'app-transaction-form',
-  imports: [ReactiveFormsModule, SelectLoopDirective, TitleCasePipe],
+  imports: [
+    ReactiveFormsModule,
+    SelectLoopDirective,
+    TitleCasePipe,
+    OpenDialogDirective,
+    PaymentMethodFormComponent,
+    AccountFormComponent,
+    CategoryFormComponent,
+    ModalComponent,
+  ],
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss',
 })
@@ -61,8 +75,6 @@ export class TransactionFormComponent implements OnInit {
 
     const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
-    // 3. On extrait le nom du mois (ou son index) et l'année
-    // .toLocaleString('fr-FR', { month: 'long' }) renverra "octobre"
     this.defaultMonth = nextMonthDate.toLocaleString('fr-FR', { month: 'long' });
     this.defaultYear = nextMonthDate.getFullYear();
     this.initForm();
@@ -105,7 +117,7 @@ export class TransactionFormComponent implements OnInit {
     const todayISO = new Date().toISOString().substring(0, 10);
 
     const transactionVide: Transaction = {
-      amount: 0,
+      amount: null,
       emissionDate: todayISO,
       type: 'DEBIT',
       description: '',
@@ -150,14 +162,15 @@ export class TransactionFormComponent implements OnInit {
   protected readonly Number = Number;
 
   protected generateRecurrent(month: number, year: number): void {
+    const accountSelected = this.transactionService.selectedAccountIdFilter();
     if (month && year && year.toString().length === 4) {
       const totalAvant = this.transactionService.allTransactionsSignal().length;
 
       this.transactionService.generateRecurrentTransactions(month, year).subscribe({
         next: () => {
+          this.transactionService.selectedAccountIdFilter.set(accountSelected);
           const totalApres = this.transactionService.allTransactionsSignal().length;
 
-          // 3. On calcule la différence
           const nbCreees = totalApres - totalAvant;
 
           if (nbCreees > 0) {
@@ -177,5 +190,21 @@ export class TransactionFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  onPaymentMethodCreated(newId: number): void {
+    this.transactionForm.patchValue({
+      paymentMethodId: newId,
+    });
+  }
+  onAccountCreated(newId: number): void {
+    this.transactionForm.patchValue({
+      accountId: newId,
+    });
+  }
+  onCategoryCreated(newId: number): void {
+    this.transactionForm.patchValue({
+      categoryId: newId,
+    });
   }
 }

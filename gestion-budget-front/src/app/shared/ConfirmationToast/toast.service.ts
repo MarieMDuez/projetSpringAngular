@@ -16,4 +16,7 @@ export class ToastService {
       this.toasts.update((current) => current.filter((t) => t.id !== id));
     }, 8000);
   }
+  remove(id: number) {
+    this.toasts.update((current) => current.filter((t) => t.id !== id));
+  }
 }

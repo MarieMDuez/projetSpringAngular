@@ -1,14 +1,22 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PaymentMethodService } from '../payment-method.service';
-import { PaymentMethod } from '../payment-method.model';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { PaymentMethodFormComponent } from '../payment-method-form/payment-method-form.component';
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
+import { ModalComponent } from '../../../shared/modal/modal.component';
+import { PaymentMethodFormComponent } from '../payment-method-form/payment-method-form.component';
+import { PaymentMethod } from '../payment-method.model';
+import { PaymentMethodService } from '../payment-method.service';
 
 @Component({
   selector: 'app-payment-method-list',
-  imports: [ReactiveFormsModule, DragDropModule, PaymentMethodFormComponent],
+  imports: [
+    ReactiveFormsModule,
+    DragDropModule,
+    PaymentMethodFormComponent,
+    OpenDialogDirective,
+    ModalComponent,
+  ],
   templateUrl: './payment-method-list.component.html',
   styleUrl: './payment-method-list.component.scss',
 })
@@ -17,10 +25,10 @@ export class PaymentMethodListComponent {
   private toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
+  protected paymentMethodToDelete = signal<PaymentMethod | null>(null);
+  protected paymentMethodToSetActive = signal<PaymentMethod | null>(null);
 
   onEdit(paymentMethod: PaymentMethod) {
-    console.log('on edite');
-
     if (paymentMethod.id != null) this.paymentMethodService.editingPaymentMethod.set(paymentMethod);
     /*Pour remonter au formulaire qui s'auto-rempli*/
     const formElement = document.getElementById('editForm');
@@ -34,11 +42,6 @@ export class PaymentMethodListComponent {
 
   protected onDelete(PaymentMethod: PaymentMethod): void {
     if (!PaymentMethod.id) return;
-
-    const confirmDelete = confirm(
-      `Voulez-vous supprimer le moyen de paiement "${PaymentMethod.label}" ?`,
-    );
-    if (!confirmDelete) return;
 
     this.paymentMethodService.deletePaymentMethod(PaymentMethod.id).subscribe({
       next: (isHardDeleted) => {
@@ -66,5 +69,41 @@ export class PaymentMethodListComponent {
       position: index,
     }));
     this.paymentMethodService.saveAll(listeMiseAJour).subscribe();
+  }
+
+  protected onConfirmDeleteAction(action: 'confirm' | 'cancel'): void {
+    const paymentMethod = this.paymentMethodToDelete();
+
+    if (action === 'confirm' && paymentMethod) {
+      this.onDelete(paymentMethod);
+    } else {
+      this.paymentMethodToDelete.set(null);
+    }
+  }
+
+  protected onSetActivePaymentMethod(paymentMethod: PaymentMethod): void {
+    if (!paymentMethod.id) return;
+
+    const updatedPaymentMethod: PaymentMethod = { ...paymentMethod, isActive: true };
+
+    this.paymentMethodService
+      .setPaymentMethodActive(paymentMethod.id, updatedPaymentMethod)
+      .subscribe({
+        next: () => {
+          this.toastService.show('La catégorie a été réactivé.', 'success');
+        },
+        error: (err) =>
+          this.toastService.show('Erreur lors de la réactivation de la catégorie.', 'error'),
+      });
+  }
+
+  protected onConfirmSetActiveAction(action: 'confirm' | 'cancel'): void {
+    const paymentMethod = this.paymentMethodToSetActive();
+
+    if (action === 'confirm' && paymentMethod) {
+      this.onSetActivePaymentMethod(paymentMethod);
+    } else {
+      this.paymentMethodToSetActive.set(null);
+    }
   }
 }

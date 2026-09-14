@@ -108,6 +108,17 @@ public class AccountService {
 		}
 	}
 	
+	public Account setActiveAccount(Long accountId) {
+		Account account = accountRepository.findById(accountId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+		account.setActive(true);
+
+		return accountRepository.save(account);
+	}
+	
+	
+	
 	@Transactional
 	public List<Account> saveAll(List<Account> accounts) {
 	    return accountRepository.saveAll(accounts);

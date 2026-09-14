@@ -1,13 +1,14 @@
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
+import { ModalComponent } from '../../../shared/modal/modal.component';
+import { CategoryFormComponent } from '../category-form/category-form.component';
 import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { CategoryFormComponent } from '../category-form/category-form.component';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 @Component({
   selector: 'app-category-list',
-  imports: [DragDropModule, CategoryFormComponent],
+  imports: [DragDropModule, CategoryFormComponent, OpenDialogDirective, ModalComponent],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',
 })
@@ -18,13 +19,13 @@ export class CategoryListComponent implements OnInit {
   protected categories = this.categoryService.allCategories;
 
   protected selectedCategory = signal<Category | null>(null);
+  protected categoryToDelete = signal<Category | null>(null);
+  protected categoryToSetActive = signal<Category | null>(null);
+
   ngOnInit(): void {}
 
   protected onDelete(category: Category): void {
     if (!category.id) return;
-
-    const confirmDelete = confirm(`Voulez-vous supprimer la catégorie "${category.label}" ?`);
-    if (!confirmDelete) return;
 
     this.categoryService.deleteCategory(category.id).subscribe({
       next: (isHardDeleted) => {
@@ -64,6 +65,40 @@ export class CategoryListComponent implements OnInit {
         behavior: 'smooth',
         block: 'start',
       });
+    }
+  }
+
+  protected onConfirmDeleteAction(action: 'confirm' | 'cancel'): void {
+    const category = this.categoryToDelete();
+
+    if (action === 'confirm' && category) {
+      this.onDelete(category);
+    } else {
+      this.categoryToDelete.set(null);
+    }
+  }
+
+  protected onSetActiveCategory(category: Category): void {
+    if (!category.id) return;
+
+    const updatedCategory: Category = { ...category, isActive: true };
+
+    this.categoryService.setCategoryActive(category.id, updatedCategory).subscribe({
+      next: () => {
+        this.toastService.show('La catégorie a été réactivé.', 'success');
+      },
+      error: (err) =>
+        this.toastService.show('Erreur lors de la réactivation de la catégorie.', 'error'),
+    });
+  }
+
+  protected onConfirmSetActiveAction(action: 'confirm' | 'cancel'): void {
+    const category = this.categoryToSetActive();
+
+    if (action === 'confirm' && category) {
+      this.onSetActiveCategory(category);
+    } else {
+      this.categoryToSetActive.set(null);
     }
   }
 }

@@ -10,5 +10,5 @@ public class BalanceDashboardDto {
 	private String label;
 	private BigDecimal initialBalance;
 	private BigDecimal currentBalance;
-	private BigDecimal provisionalBalance;
+	private BigDecimal projectedBalance;
 }

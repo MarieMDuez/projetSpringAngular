@@ -1,14 +1,15 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { TransactionService } from './transaction.service';
-import { AccountService } from '../settings/account/account.service';
-import { DashboardService } from '../dashboards/dashboard.service';
-import { Transaction } from './transaction.model';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of } from 'rxjs';
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { environment } from '../../environments/environment';
+import { DashboardService } from '../dashboards/dashboard.service';
+import { Account } from '../settings/account/account.model';
+import { AccountService } from '../settings/account/account.service';
+import { Transaction } from './transaction.model';
+import { TransactionService } from './transaction.service';
 
 describe('TransactionService', () => {
   let service: TransactionService;
@@ -46,16 +47,22 @@ describe('TransactionService', () => {
     },
   ] as Transaction[];
 
-  // Correction : mockDashboardService doit retourner un Observable pour suivre la nouvelle signature !
   const mockDashboardService: Partial<DashboardService> = {
     loadBalances: vi.fn().mockReturnValue(of({})),
   };
 
   beforeEach(() => {
     mockAccountService = {
-      allAccounts: signal([
-        { id: 1, label: 'Compte Courant', initialBalance: 1000, isActive: true, isDefault: true },
-      ] as any),
+      allAccounts: signal<Account[]>([
+        {
+          id: 1,
+          label: 'Compte Courant',
+          initialBalance: 1000,
+          isActive: true,
+          isDefault: true,
+          position: 0,
+        },
+      ]),
     };
 
     TestBed.configureTestingModule({
@@ -83,15 +90,12 @@ describe('TransactionService', () => {
   it('should fetch all transactions and activate default account filter if present', () => {
     service.loadAllTransactions().subscribe();
 
-    // 1. Premier appel : Récupération brute
     const reqAll = httpMock.expectOne(apiUrl);
     expect(reqAll.request.method).toBe('GET');
     reqAll.flush(mockTransactions);
 
-    // L'accountId par défaut doit être activé
     expect(service.selectedAccountIdFilter()).toBe(1);
 
-    // 2. Deuxième appel déclenché par le concatMap : Filtrage des transactions pour le compte 1
     const reqFilter = httpMock.expectOne(`${apiUrl}/filter?accountId=1`);
     expect(reqFilter.request.method).toBe('GET');
     reqFilter.flush(mockTransactions);
@@ -100,7 +104,6 @@ describe('TransactionService', () => {
   it('should execute GET with cleaned query params when loading filtered transactions', () => {
     const activeFilters = { accountId: 2, categoryId: '', type: 'CREDIT', textSearch: null };
 
-    // Correction : Il faut ajouter un .subscribe() car la méthode renvoie désormais un Observable !
     service.loadFilteredTransactions(activeFilters).subscribe();
 
     const req = httpMock.expectOne(`${apiUrl}/filter?accountId=2&type=CREDIT`);
@@ -119,7 +122,6 @@ describe('TransactionService', () => {
     expect(req.request.method).toBe('POST');
     req.flush(responseTx);
 
-    // Correction : On ajoute bien les parenthèses () ET l'index [0]
     expect(service.allTransactionsSignal()[0].id).toBe(30);
     expect(service.filteredTransactionsSignal()[0].id).toBe(30);
     expect(service.loadUniqueRecurrences).toHaveBeenCalled();
@@ -153,7 +155,6 @@ describe('TransactionService', () => {
     );
     reqDelete.flush(null);
 
-    // On simule l'appel de récurrences et de balances déclenchés par le forkJoin
     const reqRecurrences = httpMock.expectOne((req) => req.url.includes('/recurrences/unique'));
     reqRecurrences.flush([]);
 
@@ -174,7 +175,6 @@ describe('TransactionService', () => {
     );
     reqGen.flush(null);
 
-    // Ordre de cascade du loadAllTransactions déclenché après génération
     const reqAll = httpMock.expectOne(apiUrl);
     reqAll.flush(mockTransactions);
 

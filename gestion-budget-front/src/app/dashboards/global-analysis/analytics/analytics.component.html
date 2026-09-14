@@ -1,0 +1,198 @@
+<div class="analytics-container">
+
+    <header class="filters-header">
+        <h2 class="dashboard-title">Statistiques & Analyses</h2>
+    </header>
+
+    @if (analyticsData()) {
+    <main class="analytics-grid">
+
+        <section class="analytics-card">
+            <h3 class="card-title">Ventilation par Catégories</h3>
+
+            <div class="card-linear-flow">
+
+                <div class="chart-box-wrapper">
+                    <h4>Visualisation des Dépenses (-)</h4>
+                    <div class="chart-wrapper">
+                        @if (categoryDebitsSeries().length > 0) {
+                        <apx-chart [series]="categoryDebitsSeries()" [labels]="categoryDebitsLabels()"
+                            [colors]="chartColors" [chart]="categoryDebitsOptions().chart"
+                            [plotOptions]="categoryDebitsOptions().plotOptions"
+                            [legend]="categoryDebitsOptions().legend">
+                        </apx-chart>
+                        } @else {
+                        <div class="no-chart-data">
+                            <span class="placeholder-text">Aucune dépense (0 €)</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="sub-table-container danger-theme">
+                    <h4>Détail des Dépenses (-)</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Catégorie</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of categoryDebits(); track item.label) {
+                            <tr>
+                                <td>{{ item.label }}</td>
+                                <td class="text-right amount">{{ item.total | number:'1.2-2' }} €</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="2" class="empty-row">Aucune dépense enregistrée</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sub-table-container success-theme">
+                    <h4>Détail des Revenus (+)</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Catégorie</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of categoryCredits(); track item.label) {
+                            <tr>
+                                <td>{{ item.label }}</td>
+                                <td class="text-right amount">{{ item.total | number:'1.2-2' }} €</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="2" class="empty-row">Aucun revenu enregistré</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-box-wrapper">
+                    <h4>Visualisation des Revenus (+)</h4>
+                    <div class="chart-wrapper">
+                        @if (categoryCreditsSeries().length > 0) {
+                        <apx-chart [series]="categoryCreditsSeries()" [labels]="categoryCreditsLabels()"
+                            [colors]="chartColors" [chart]="categoryCreditsOptions().chart"
+                            [plotOptions]="categoryCreditsOptions().plotOptions"
+                            [legend]="categoryCreditsOptions().legend">
+                        </apx-chart>
+                        } @else {
+                        <div class="no-chart-data">
+                            <span class="placeholder-text">Aucun revenu (0 €)</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="analytics-card">
+            <h3 class="card-title">Utilisation des Moyens de Paiement</h3>
+
+            <div class="card-linear-flow">
+
+                <div class="chart-box-wrapper">
+                    <h4>Visualisation des Dépenses (-)</h4>
+                    <div class="chart-wrapper">
+                        @if (paymentDebitsSeries().length > 0) {
+                        <apx-chart [series]="paymentDebitsSeries()" [labels]="paymentDebitsLabels()"
+                            [colors]="chartColors" [chart]="paymentDebitsOptions().chart"
+                            [plotOptions]="paymentDebitsOptions().plotOptions" [legend]="paymentDebitsOptions().legend">
+                        </apx-chart>
+
+                        } @else {
+                        <div class="no-chart-data">
+                            <span class="placeholder-text">Aucune dépense (0 €)</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="sub-table-container danger-theme">
+                    <h4>Détail des Dépenses (-)</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Moyen</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of paymentDebits(); track item.label) {
+                            <tr>
+                                <td>{{ item.label }}</td>
+                                <td class="text-right amount">{{ item.total | number:'1.2-2' }} €</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="2" class="empty-row">Aucune dépense</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sub-table-container success-theme">
+                    <h4>Détail des Revenus (+)</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Moyen</th>
+                                <th class="text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of paymentCredits(); track item.label) {
+                            <tr>
+                                <td>{{ item.label }}</td>
+                                <td class="text-right amount">{{ item.total | number:'1.2-2' }} €</td>
+                            </tr>
+                            } @empty {
+                            <tr>
+                                <td colspan="2" class="empty-row">Aucun revenu</td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-box-wrapper">
+                    <h4>Visualisation des Revenus (+)</h4>
+                    <div class="chart-wrapper">
+                        @if (paymentCreditsSeries().length > 0) {
+
+                        <apx-chart [series]="paymentCreditsSeries()" [labels]="paymentCreditsLabels()"
+                            [colors]="chartColors" [chart]="paymentCreditsOptions().chart"
+                            [plotOptions]="paymentCreditsOptions().plotOptions"
+                            [legend]="paymentCreditsOptions().legend">
+                        </apx-chart>
+                        } @else {
+                        <div class="no-chart-data">
+                            <span class="placeholder-text">Aucun flux entrant (0 €)</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+    } @else {
+    <div class="loading-state">
+        <p>Analyse des transactions financières en cours...</p>
+    </div>
+    }
+
+</div>

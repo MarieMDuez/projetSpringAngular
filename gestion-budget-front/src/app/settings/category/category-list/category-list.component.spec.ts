@@ -1,23 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CategoryListComponent } from './category-list.component';
-import { CategoryService } from '../category.service';
-import { Category } from '../category.model';
-import { signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Category } from '../category.model';
+import { CategoryService } from '../category.service';
+import { CategoryListComponent } from './category-list.component';
 
 describe('CategoryListComponent', () => {
   let component: CategoryListComponent;
   let fixture: ComponentFixture<CategoryListComponent>;
 
-  // Isolation du State global de l'application via des stubs
   const mockAllCategories = signal<Category[]>([]);
   const mockEditingCategory = signal<Category | null>(null);
   const mockToastService: { show: Mock } = { show: vi.fn() };
 
-  // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   const mockCategoryService: Partial<CategoryService> = {
     allCategories: mockAllCategories,
@@ -37,7 +35,6 @@ describe('CategoryListComponent', () => {
         { provide: CategoryService, useValue: mockCategoryService },
         { provide: ToastService, useValue: mockToastService },
       ],
-      schemas: [NO_ERRORS_SCHEMA], // Empêche l'analyse du template de <app-category-form> dans ce test
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryListComponent);
@@ -59,8 +56,8 @@ describe('CategoryListComponent', () => {
 
   it('should call deleteCategory API when user confirms deletion via window dialog', () => {
     const targetCategory: Category = { id: 3, label: 'Alimentation', isActive: true, position: 1 };
-    vi.spyOn(window, 'confirm').mockReturnValue(true); // Clic "OK" simulé
-    (mockCategoryService.deleteCategory as Mock).mockReturnValue(of(true)); // Hard-delete validé par le back
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    (mockCategoryService.deleteCategory as Mock).mockReturnValue(of(true));
 
     component['onDelete'](targetCategory);
 
@@ -73,11 +70,10 @@ describe('CategoryListComponent', () => {
 
   it('should abort deletion protocol if user cancels the native confirm window', () => {
     const targetCategory: Category = { id: 3, label: 'Alimentation', isActive: true, position: 1 };
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // Clic "Annuler" simulé
+    component['categoryToDelete'].set(targetCategory);
+    component['onConfirmDeleteAction']('cancel');
+    expect(component['categoryToDelete']()).toBeNull();
 
-    component['onDelete'](targetCategory);
-
-    expect(confirmSpy).toHaveBeenCalled();
     expect(mockCategoryService.deleteCategory).not.toHaveBeenCalled();
   });
 
@@ -88,7 +84,6 @@ describe('CategoryListComponent', () => {
 
     (mockCategoryService.saveAll as Mock).mockReturnValue(of([catB, catA]));
 
-    // Simulation d'un glisser-déposer permutant l'élément 0 à la place 1
     const mockDragDropEvent = {
       previousIndex: 0,
       currentIndex: 1,
@@ -96,7 +91,6 @@ describe('CategoryListComponent', () => {
 
     component.onDrop(mockDragDropEvent);
 
-    // Vérification de l'appel d'enregistrement avec les positions normalisées (0, 1)
     expect(mockCategoryService.saveAll).toHaveBeenCalledWith([
       expect.objectContaining({ id: 200, position: 0 }),
       expect.objectContaining({ id: 100, position: 1 }),

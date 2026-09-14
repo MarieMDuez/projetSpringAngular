@@ -77,5 +77,15 @@ public class CategoryService {
 	public List<Category> saveAll(List<Category> categories) {
 	    return categoryRepository.saveAll(categories);
 	}
+	
+	
+	public Category setActiveCategory(Long categoryId) {
+		Category category = categoryRepository.findById(categoryId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+		category.setActive(true);
+
+		return categoryRepository.save(category);
+	}
 
 }

@@ -36,8 +36,8 @@ describe('TransactionFiltersComponent', () => {
         label: 'Vue Globale',
         initialBalance: 1000,
         currentBalance: 800,
-        provisionalBalance: 1100,
-      }) as any,
+        projectedBalance: 1100,
+      }),
       loadBalances: vi.fn().mockReturnValue(of({})),
     };
 
@@ -82,7 +82,6 @@ describe('TransactionFiltersComponent', () => {
     filterForm.patchValue({ year: '2026', month: '8' });
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Correction : On utilise expect.objectContaining pour valider la présence des clés cibles
     expect(mockTransactionService.loadFilteredTransactions).toHaveBeenCalledWith(
       expect.objectContaining({
         year: '2026',

@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
@@ -18,10 +18,12 @@ export class CategoryFormComponent implements OnInit {
   protected categoryService = inject(CategoryService);
   protected categories = this.categoryService.allCategories;
 
+  saveSuccess = output<number>();
+
   constructor() {
     effect(() => {
       const category = this.categoryService.editingCategory();
-      if (category) this.onEdit(category);
+      if (category && this.categoryForm) this.onEdit(category);
     });
   }
 
@@ -70,8 +72,9 @@ export class CategoryFormComponent implements OnInit {
     } else {
       cat.position = this.categories().length;
       this.categoryService.createCategory(cat).subscribe({
-        next: () => {
+        next: (newCategory: Category) => {
           this.toastService.show('Catégorie créée avec succès !', 'success');
+          this.saveSuccess.emit(newCategory.id!);
           this.categoryForm.reset(categoryVide);
         },
         error: (err) => {

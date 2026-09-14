@@ -1,0 +1,98 @@
+<div class="matrix-monthly-wrapper">
+    @if (matrixData(); as data){
+    @if ( data.rows && data.rows.length > 0) {
+    <div class="matrix-actions-header">
+        <button type="button" class="btn-matrix-toggle" (click)="onToggleAllRows()">
+            {{ isMatrixAllExpanded() ? 'Replier toutes les catégories' : 'Déplier toutes les catégories' }}
+        </button>
+    </div>
+    }
+    }
+
+    @if (isLoading()) {
+    <div class="matrix-loader">
+        <div class="spinner"></div>
+        <p>Analyse des semaines en cours...</p>
+    </div>
+    }
+
+    @if (!isLoading() && matrixData(); as data) {
+    <div class="table-responsive">
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th class="main-header">Moyens de paiement / Catégories</th>
+                    @for (weekIndex of weeksArray(); track weekIndex) {
+                    <th class="month-header">Semaine {{ weekIndex + 1 }}</th>
+                    }
+                    <th class="month-header total-header">Bilan Mois</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (row of data.rows; track row.paymentMethodLabel) {
+                <tr class="row-payment-method" (click)="toggleRow(row)">
+                    <td>
+                        <span class="cell-label">
+                            <span class="toggle-icon">{{ row.isExpanded ? '▼' : '►' }}</span>
+                            <strong>{{ row.paymentMethodLabel }}</strong>
+                        </span>
+                    </td>
+                    @for (amount of row.weeklyAmounts; track $index) {
+                    <td class="cell-amount" [class.amount-debit]="amount < 0" [class.amount-credit]="amount > 0">
+                        {{ amount !== 0 ? (amount | currency:'EUR':'symbol':'1.2-2') : '—' }}
+                    </td>
+
+                    }
+                    <td class="cell-amount total-col" [class.amount-debit]="row.totalMonth < 0"
+                        [class.amount-credit]="row.totalMonth > 0">
+                        {{ row.totalMonth | currency:'EUR':'symbol':'1.2-2' }}
+                    </td>
+                </tr>
+
+                @if (row.isExpanded) {
+                @for (cat of row.categoryRows; track cat.categoryLabel) {
+                <tr class="row-category">
+                    <td>
+                        <span class="cell-label pad-left">
+                            <span class="tree-fork">└─</span>
+                            <span class="text-muted">{{ cat.categoryLabel }}</span>
+                        </span>
+                    </td>
+                    @for (catAmount of cat.weeklyAmounts; track $index) {
+                    <td class="cell-amount" [class.amount-debit]="catAmount < 0" [class.amount-credit]="catAmount > 0">
+                        {{ catAmount !== 0 ? (catAmount | currency:'EUR':'symbol':'1.2-2') : '—' }}
+                    </td>
+                    }
+                    <td class="cell-amount total-col" [class.amount-debit]="cat.totalMonth < 0"
+                        [class.amount-credit]="cat.totalMonth > 0">
+                        {{ cat.totalMonth | currency:'EUR':'symbol':'1.2-2' }}
+                    </td>
+                </tr>
+                }
+                }
+                }
+
+                <tr class="row-grand-totals">
+                    <td><strong>Bilan Net de la Période</strong></td>
+                    @for (grandTotal of data.weeklyTotals; track $index) {
+                    <td class="cell-amount" [class.amount-debit]="grandTotal < 0"
+                        [class.amount-credit]="grandTotal > 0">
+                        <strong>{{ grandTotal | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                    </td>
+                    }
+                    <td class="cell-amount total-col" [class.amount-debit]="data.grandTotal < 0"
+                        [class.amount-credit]="data.grandTotal > 0">
+                        <strong>{{ data.grandTotal | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    } @else if (!isLoading() && !matrixData()) {
+    <div class="matrix-empty">
+        Aucune donnée disponible pour ce mois d'analyse.
+    </div>
+    }
+
+</div>

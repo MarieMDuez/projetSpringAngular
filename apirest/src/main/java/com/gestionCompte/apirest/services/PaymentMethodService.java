@@ -77,4 +77,13 @@ public class PaymentMethodService {
 	public List<PaymentMethod> saveAll(List<PaymentMethod> paymentMethods) {
 		return paymentMethodRepository.saveAll(paymentMethods);
 	}
+
+	public PaymentMethod setActivePaymentMethod(Long paymentMethodId) {
+		PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+		paymentMethod.setActive(true);
+
+		return paymentMethodRepository.save(paymentMethod);
+	}
 }

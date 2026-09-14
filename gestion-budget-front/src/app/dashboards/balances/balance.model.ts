@@ -3,5 +3,5 @@ export interface balanceDto {
   label: string;
   initialBalance: number;
   currentBalance: number;
-  provisionalBalance: number;
+  projectedBalance: number;
 }

@@ -1,15 +1,16 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { signal } from '@angular/core';
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
-import { TransactionService } from '../../transaction.service';
+import { of } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { environment } from '../../../../environments/environment';
+import { DashboardService } from '../../../dashboards/dashboard.service';
+import { Account } from '../../../settings/account/account.model';
 import { AccountService } from '../../../settings/account/account.service';
 import { Transaction } from '../../transaction.model';
-import { DashboardService } from '../../../dashboards/dashboard.service';
-import { environment } from '../../../../environments/environment';
-import { of } from 'rxjs';
+import { TransactionService } from '../../transaction.service';
 
 describe('TransactionService', () => {
   let service: TransactionService;
@@ -19,9 +20,23 @@ describe('TransactionService', () => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   const apiUrl = `${environment.apiUrl}/transactions`;
 
-  const mockAccounts = [
-    { id: 1, label: 'Compte Courant', initialBalance: 1000, isActive: true, isDefault: true },
-    { id: 2, label: 'Livret A', initialBalance: 5000, isActive: true, isDefault: false },
+  const mockAccounts: Account[] = [
+    {
+      id: 1,
+      label: 'Compte Courant',
+      initialBalance: 1000,
+      isActive: true,
+      isDefault: true,
+      position: 1,
+    },
+    {
+      id: 2,
+      label: 'Livret A',
+      initialBalance: 5000,
+      isActive: true,
+      isDefault: false,
+      position: 2,
+    },
   ];
 
   const mockTransactions = [
@@ -59,7 +74,7 @@ describe('TransactionService', () => {
 
   beforeEach(() => {
     mockAccountService = {
-      allAccounts: signal(mockAccounts as any),
+      allAccounts: signal(mockAccounts),
     };
 
     TestBed.configureTestingModule({

@@ -1,17 +1,19 @@
-// ==========================================
-// CONFIGURATION DU DESIGN SYSTEM (VERSION CLAIRE)
-// ==========================================
+
 :root {
-  --background: #f8fafc;      // Fond général gris/bleu ultra-clair
-  --surface: #ffffff;         // Fond des cartes (Blanc pur pour le contraste)
-  --border: #e2e8f0;          // Bordures grises discrètes
+  --background: #f8fafc;      
+  --surface: #ffffff;         
+  --border: #e2e8f0;          
   
-  --primary: #4f46e5;         // Indigo principal
+  --primary: #4f46e5;         
   --primary-hover: #4338ca;
   --primary-foreground: #ffffff;
 
-  --text-main: #0f172a;       // Texte principal (presque noir, lisibilité maximale)
-  --text-muted: #64748b;      // Texte secondaire (gris)
+  --secondary: #94d0ec;         
+  --secondary-hover: #4e82cf;
+  --secondary-foreground: #ffffff;
+
+  --text-main: #0f172a;       
+  --text-muted: #64748b;      
   
   --radius: 12px;
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -29,7 +31,7 @@ body {
   padding: 1.5rem;
 }
 
-// Badges et utilitaires
+
 .badge-archived {
   background-color: #fee2e2;
   color: #ef4444;
@@ -49,25 +51,25 @@ body {
 }
 
 
-// ==========================================
-// DESIGN SYSTEM POUR COMPOSANTS DE DASHBOARD
-// ==========================================
 
-// Grille de la page de config
+
+
+
+
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(300px, 1fr)); // Force un affichage strict en 3 colonnes sur grand écran
+  grid-template-columns: repeat(3, minmax(300px, 1fr)); 
   gap: 1.5rem;
   margin-top: 1.5rem;
   width: 100%;
 
-  // Sécurité responsive : si l'écran est trop petit, les colonnes passent les unes sous les autres
+  
   @media (max-width: 1024px) {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   }
 }
 
-// Structure de la carte (Blanche sur fond gris)
+
 .card-container {
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -83,14 +85,14 @@ body {
   }
 }
 
-// Structure du Formulaire (Évite la superposition)
+
 .form-inline {
   display: flex;
-  flex-wrap: wrap; // Permet de passer à la ligne proprement si l'écran est petit
+  flex-wrap: wrap; 
   gap: 1rem;
   align-items: flex-end;
   margin-bottom: 1.5rem;
-  background-color: #f1f5f9; // Petit fond gris clair pour détacher le formulaire
+  background-color: #f1f5f9; 
   padding: 1rem;
   border-radius: 8px;
 
@@ -99,7 +101,7 @@ body {
     flex-direction: column;
     gap: 0.375rem;
     flex: 1;
-    min-width: 140px; // Évite que l'input devienne minuscule
+    min-width: 140px; 
 
     label {
       font-size: 0.75rem;
@@ -126,7 +128,7 @@ body {
   }
 }
 
-// Liste des éléments (Lignes blanches sur fond de carte)
+
 .data-list {
   display: flex;
   flex-direction: column;
@@ -181,7 +183,7 @@ body {
   }
 }
 
-// Boutons standardisés
+
 .btn-primary {
   background-color: var(--primary);
   color: var(--primary-foreground);
@@ -191,9 +193,23 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  height: 36px; // Aligné sur la hauteur des inputs
+  height: 36px; 
 
   &:hover { background-color: var(--primary-hover); }
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  height: 36px; 
+
+  &:hover { background-color: var(--secondary-hover); }
 }
 
 .btn-secondary-link {
@@ -219,11 +235,11 @@ body {
   &:hover { background-color: #f1f5f9; }
 }
 .form-group-checkbox {
-  flex: 0 !important; // Empêche la case à cocher de s'étirer inutilement
+  flex: 0 !important; 
   min-width: 150px;
   display: flex;
   align-items: center;
-  height: 36px; // Même hauteur que le bouton principal pour un alignement horizontal parfait
+  height: 36px; 
   margin-bottom: 2px;
 
   .checkbox-label {
@@ -260,9 +276,9 @@ body {
   margin-top: 1rem;
 }
 
-// ==========================================
-// BLOC DES SOLDES & SÉLECTEUR DE PÉRIMÈTRE
-// ==========================================
+
+
+
 
 .balances-container {
   display: flex;
@@ -272,7 +288,7 @@ body {
   width: 100%;
 }
 
-// Zone du Select (Fait écho au style de la capture)
+
 .balances-scope {
   display: flex;
   flex-direction: column;
@@ -306,7 +322,7 @@ body {
   }
 }
 
-// Les Cartes de résumé
+
 .balances-summary {
   display: flex;
   gap: 1.25rem;
@@ -338,36 +354,69 @@ body {
     letter-spacing: -0.02em;
   }
 
-  // Déclinaison Vert : Solde Réel
+  
   &.card-real {
-    background-color: #f0fdf4; // Fond vert très clair doux
+    background-color: #f0fdf4; 
     border-color: #dcfce7;
     
     .balance-title {
-      color: #166534; // Vert foncé text
+      color: #166534; 
     }
     .balance-amount {
-      color: #15803d; // Vert principal
+      color: #15803d; 
     }
   }
 
-  // Déclinaison Bleu Indigo (Anciennement Orange) : Solde Prévisionnel
+  
   &.card-projected {
-    background-color: #f5f3ff; // Fond violet/indigo très clair doux
+    background-color: #f5f3ff; 
     border-color: #ede9fe;
     
     .balance-title {
-      color: #5b21b6; // Violet foncé text
+      color: #5b21b6; 
     }
     .balance-amount {
-      color: #6d28d9; // Violet principal
+      color: #6d28d9; 
     }
   }
 }
+/***** Ajouts pour la page "summary"*****/
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+   @media (min-width: 1024px) { 
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-// ==========================================
-// ACCORDÉONS ET FORMULAIRES DE TRANSACTIONS
-// ==========================================
+.account-item-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: #1e293b;
+  }
+
+  .account-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+  }
+}
+
+
+
+
+
 
 .section-title-tracker {
   font-size: 0.75rem;
@@ -378,7 +427,7 @@ body {
   margin-bottom: 1rem;
 }
 
-// Conteneur de la boîte de filtres grisée
+
 .filters-wrapper-box {
   background-color: #f1f5f9; 
   border: 1px solid var(--border, #e2e8f0);
@@ -387,15 +436,15 @@ body {
   margin: 2rem 0;
   width: 100%;
   box-sizing: border-box;
-   // On cible la grille de formulaire UNIQUEMENT à l'intérieur des filtres
+   
   .form-grid-inline {
-    background-color: transparent !important; // On enlève le fond blanc de la carte
-    border: none !important;                 // On enlève la bordure double
-    box-shadow: none !important;             // On enlève l'ombre portée
-    padding: 0 !important;                   // On colle aux bords du conteneur gris
+    background-color: transparent !important; 
+    border: none !important;                 
+    box-shadow: none !important;             
+    padding: 0 !important;                   
     margin-bottom: 1rem;
 
-    // On customise les inputs et selects pour cette zone de recherche
+    
     input, select {
       background-color: #ffffff !important;
       border: 1px solid #cbd5e1 !important;
@@ -407,17 +456,17 @@ body {
       }
     }
 
-    // Le texte d'indication "Recherche globale..."
+    
     div {
       color: #64748b !important;
     }
   }
 }
 
-// Grille horizontale partagée (Utilisée pour l'Ajout ET pour les Filtres)
+
 .form-grid-inline {
   display: flex;
-  flex-wrap: wrap; // 1. On réactive le wrap pour permettre au bouton de respirer s'il n'y a pas assez de place
+  flex-wrap: wrap; 
   gap: 0.75rem;
   align-items: flex-start;
   background-color: var(--surface, #ffffff);
@@ -434,18 +483,18 @@ body {
     flex-direction: column;
     gap: 0.375rem;
     box-sizing: border-box;
-    flex: 1 1 auto; // 2. On donne le droit aux éléments de s'ajuster s'ils manquent de place
+    flex: 1 1 auto; 
 
-    // On réduit légèrement les pourcentages pour laisser de la place aux marges (gap)
-    &:nth-child(1) { width: 10%; min-width: 100px; } // Date
-    &:nth-child(2) { width: 11%; min-width: 110px; } // Compte
-    &:nth-child(3) { width: 11%; min-width: 110px; } // Moyen de Paiement
-    &:nth-child(4) { width: 11%; min-width: 110px; } // Catégorie
-    &:nth-child(5) { width: 16%; min-width: 140px; } // Description
-    &:nth-child(6) { width: 10%; min-width: 90px;  } // Type
-    &:nth-child(7) { width: 8%;  min-width: 70px;  } // Montant
-    &:nth-child(8) { width: 6%;  min-width: 50px;  } // Récurrence
-    &:nth-child(9) { width: 5%;  min-width: 50px;  } // Pointée
+    
+    &:nth-child(1) { width: 10%; min-width: 100px; } 
+    &:nth-child(2) { width: 11%; min-width: 110px; } 
+    &:nth-child(3) { width: 11%; min-width: 110px; } 
+    &:nth-child(4) { width: 11%; min-width: 110px; } 
+    &:nth-child(5) { width: 16%; min-width: 140px; } 
+    &:nth-child(6) { width: 10%; min-width: 90px;  } 
+    &:nth-child(7) { width: 8%;  min-width: 70px;  } 
+    &:nth-child(8) { width: 6%;  min-width: 50px;  } 
+    &:nth-child(9) { width: 5%;  min-width: 50px;  } 
 
     label {
       font-size: 0.65rem;
@@ -477,7 +526,7 @@ body {
   }
 }
 
-// Gestion des petites croix (✖) pour effacer les filtres unitaires
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -499,12 +548,12 @@ body {
     transition: color 0.15s;
 
     &:hover {
-      color: #ef4444; // Devient rouge au survol
+      color: #ef4444; 
     }
   }
 }
 
-// Structure du pied de la zone des filtres (Outils secondaires)
+
 .filters-footer-tools {
   display: flex;
   justify-content: space-between;
@@ -560,7 +609,7 @@ body {
   }
 }
 
-// Conteneur du grand tableau blanc
+
 .transactions-table-container {
   background-color: var(--surface, #ffffff);
   border: 1px solid var(--border, #e2e8f0);
@@ -581,11 +630,87 @@ body {
   }
 }
 
-// Structure de la table
 .table-responsive {
   width: 100%;
-  overflow-x: auto; // Permet de glisser horizontalement sur mobile
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  background-color: var(--bg-card, #ffffff);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  overflow: hidden;
 }
+
+
+.table-virtual-header, .table-virtual-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 1.25rem;
+}
+
+
+.table-virtual-header {
+  height: 45px;
+  background-color: var(--bg-muted, #f8fafc);
+  border-bottom: 2px solid var(--border-color, #cbd5e1);
+  
+  div {
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+
+.transactions-viewport {
+  height: 550px; 
+  width: 100%;
+  overflow-y: auto;
+
+  .table-virtual-row {
+    height: 45px; 
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    background-color: var(--bg-card, #ffffff);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--bg-muted, #f8fafc);
+    }
+
+    &.row-checked {
+      background-color: rgba(16, 185, 129, 0.03);
+    }
+  }
+
+  div {
+    font-size: 0.9rem;
+    color: var(--text-main, #1e293b);
+  }
+}
+
+
+
+
+.col-date     { width: 9%; }
+.col-account  { width: 12%; }
+.col-method   { width: 12%; }
+.col-category { width: 12%; }
+.col-desc     { width: 22%; padding-right: 0.5rem; }
+.col-debit    { width: 9%; }
+.col-credit   { width: 9%; }
+.col-rec      { width: 5%; }
+.col-pointed  { width: 5%; }
+.col-actions  { width: 5%; }
+
+
+.text-right { text-align: right; justify-content: flex-end; display: flex; }
+.text-center { text-align: center; justify-content: center; display: flex; }
+.text-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.font-medium { font-weight: 500; }
+.amount-debit { color: #ef4444; }
+.amount-credit { color: #10b981; }
+
 
 .custom-table {
   width: 100%;
@@ -615,25 +740,25 @@ body {
   }
 }
 
-// Classes utilitaires spécifiques aux cellules
+
 .table-text-bold {
   font-weight: 600;
   color: var(--text-main);
 }
 
 .amount-debit {
-  color: #b91c1c !important; // Rouge financier élégant
+  color: #b91c1c !important; 
   font-weight: 600;
 }
 
 .amount-credit {
-  color: #15803d !important; // Vert financier élégant
+  color: #15803d !important; 
   font-weight: 600;
 }
 
-// Ligne pointée / validée (Discrètement barrée et grisée)
+
 .row-checked {
-  background-color: #f8fafc;
+  background-color: #f0fff0;
   opacity: 0.75;
   td {
     text-decoration: line-through rgba(15, 23, 42, 0.15);
@@ -641,20 +766,20 @@ body {
 }
 
 .checkbox-pointer {
-  width: 20px !important;  // Augmente la largeur
-  height: 20px !important; // Augmente la hauteur
+  width: 20px !important;  
+  height: 20px !important; 
   cursor: pointer;
-  accent-color: var(--primary, #4f46e5); // Force la couleur indigo quand elle est cochée
+  accent-color: var(--primary, #4f46e5); 
   border-radius: 4px;
   border: 1px solid #cbd5e1;
   transition: transform 0.1s ease;
 
   &:hover {
-    transform: scale(1.1); // Petit effet de zoom au survol pour l'appel à l'action
+    transform: scale(1.1); 
   }
 }
 
-// Petits badges récurrents
+
 .badge-recurring {
   display: inline-flex;
   align-items: center;
@@ -687,6 +812,7 @@ body {
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: slideIn 0.3s ease;
+  position: relative;
 
   &.success { background-color: #10b981; }
   &.error { background-color: #ef4444; }
@@ -694,9 +820,83 @@ body {
    &:empty {
     display: none;
   }
+
+  .btn-toast-close{
+    position: absolute;
+    right:2px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s;
+    
+    &:hover {
+      color: #000;
+    }
+  }
 }
 
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
+}
+
+.modal-container {
+
+ position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+    border: none;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px; 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  
+  .btn-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+    
+    &:hover {
+      color: #333;
+    }
+  }
+
+  .modal-content {
+    h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+  }
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px); 
+  }
+}
+.form-field-group {
+  display: flex;
+  flex-direction: column; 
+}
+
+.alert-info-contextual{
+  font-size : 0.7rem;
+}
+.text-danger{
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.modal-body{
+  padding : 1rem;
 }

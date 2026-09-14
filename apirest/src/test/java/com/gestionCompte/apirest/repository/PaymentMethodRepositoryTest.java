@@ -22,7 +22,6 @@ public class PaymentMethodRepositoryTest {
     
     @Test
     public void should_return_only_active_categories() {
-        // Given : On génère un libellé unique pour ne pas se mélanger avec votre historique BDD
         String uniqueLabelActive = "PaymentMethod Test Active Unique";
         String uniqueLabelInactive = "PaymentMethod Test Inactive Unique";
 
@@ -38,10 +37,8 @@ public class PaymentMethodRepositoryTest {
 
         entityManager.flush();
 
-        // When : Récupération de toutes les catégories actives de la BDD
         List<PaymentMethod> activePaymentMethods = paymentMethodRepository.findByIsActiveTrue();
 
-        // Then : On extrait les noms pour vérifier la présence/absence
         boolean activeFound = false;
         boolean inactiveFound = false;
 
@@ -50,7 +47,6 @@ public class PaymentMethodRepositoryTest {
             if (paymentMethod.getLabel().equals(uniqueLabelInactive)) inactiveFound = true;
         }
 
-        // Si la catégorie active est introuvable, ou si l'inactive s'est glissée dans le flux : CRASH
         if (!activeFound || inactiveFound) {
             throw new AssertionError("Échec : Le filtrage par statut actif ne fonctionne pas correctement !");
         }

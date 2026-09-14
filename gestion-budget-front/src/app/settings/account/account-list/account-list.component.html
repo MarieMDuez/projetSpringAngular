@@ -1,19 +1,16 @@
 <div class="account-list-container">
-  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-account-form></app-account-form>
 
   <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (account of accounts(); track account.id) {
     <div class="data-item" [class.item-disabled]="!account.isActive" cdkDrag>
 
-      <!-- Poignée de glissement (Drag Handle) -->
       @if (account.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
       <span class="drag-handle-placeholder"></span>
       }
 
-      <!-- Informations du Compte -->
       <div class="item-info">
         <span class="item-name">
           {{ account.label }}
@@ -26,20 +23,26 @@
         </span>
       </div>
 
-      <!-- Actions sur le Compte -->
       <div class="item-actions">
         @if (account.isActive) {
         @if (account.isDefault) {
         <span class="badge-success-solid" title="Compte principal sélectionné">⭐ Principal</span>
         } @else {
-        <button type="button" (click)="toggleAccountByDefault(account)" class="btn-secondary-link">
+
+        <button type="button" [appOpenDialog]="confirmDefaultModal" (click)="accountToSetDefault.set(account)"
+          class="btn-secondary-link">
           Passer en principal
         </button>
         }
         <button type="button" class="btn-icon" (click)="onEdit(account)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon" (click)="onDelete(account)" title="Supprimer le compte">🗑️</button>
+        <button type="button" class="btn-icon" [appOpenDialog]="deleteAccountModal"
+          (click)="accountToDelete.set(account)" title="Supprimer le compte">🗑️</button>
         } @else {
-        <span class="text-muted">—</span>
+        <span class="text-muted">
+          <button type="button" class="btn-icon" [appOpenDialog]="setActiveAccountModal"
+            (click)="accountToSetActive.set(account)" title="Réactiver">Réactiver</button>
+
+        </span>
         }
       </div>
 
@@ -49,3 +52,40 @@
     }
   </div>
 </div>
+
+
+<app-modal #confirmDefaultModal title="⚠️ Changer le compte principal" options="accept-reject" type="warning"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmDefaultAction($event)">
+
+  @if (accountToSetDefault(); as account) {
+  <p>
+    Voulez-vous vraiment définir le compte <strong>{{ account.label }}</strong> comme compte par défaut ?
+  </p>
+  <p class="text-muted">
+    L'ancien compte par défaut sera automatiquement basculé en compte standard.
+  </p>
+  }
+</app-modal>
+
+<app-modal #deleteAccountModal title="Suppression de compte" options="accept-reject" type="danger"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmDeleteAction($event)">
+
+  @if (accountToDelete(); as account) {
+  <p>
+    Êtes-vous sûr de vouloir supprimer le compte <strong>{{ account.label }}</strong> ?
+  </p>
+  <p class="text-danger">
+    Si des transactions sont rattachées à ce compte, il sera simplement archivé.
+  </p>
+  }
+</app-modal>
+
+<app-modal #setActiveAccountModal title="Réactiver le compte" options="accept-reject" type="warning"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmSetActiveAction($event)">
+
+  @if (accountToSetActive(); as account) {
+  <p>
+    Êtes-vous sûr de vouloir réactiver le compte <strong>{{ account.label }}</strong> ?
+  </p>
+  }
+</app-modal>

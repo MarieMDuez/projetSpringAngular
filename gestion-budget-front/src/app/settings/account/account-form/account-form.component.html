@@ -1,36 +1,42 @@
 <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="form-inline" id="editForm"
-    [class.edit-mode]="this.accountService.editingAccount()?.id">
+    [class.edit-mode]="accountService.editingAccount()?.id">
 
-    <!-- Champ : Nom du compte -->
     <div class="form-group">
         <label for="accountLabel">Nom du compte</label>
-        <input id="accountLabel" type="text" formControlName="label" placeholder="Ex: Compte Courant, Livret A...">
+        <input id="accountLabel" type="text" formControlName="label" placeholder="Ex: Compte Courant, Livret A..."
+            autofocus>
         @if (accountForm.get('label')?.touched && accountForm.get('label')?.invalid) {
         <small class="error-text">Obligatoire (3 car. min)</small>
         }
     </div>
 
-    <!-- Champ : Solde Initial -->
     <div class="form-group">
         <label for="balance">Solde Initial (€)</label>
         <input id="balance" type="number" formControlName="initialBalance" placeholder="0.00">
     </div>
 
-    <!-- Champ : Case à cocher Par Défaut -->
     <div class="form-group form-group-checkbox">
         <label class="checkbox-label">
             <input type="checkbox" formControlName="isDefault">
             <span class="checkbox-text">Compte principal</span>
         </label>
+        @if (accountForm.get('isDefault')?.value) {
+        <div class="alert-info-contextual">
+            <span class="alert-icon">⚠️</span>
+            <p>
+                En cochant cette case, s'il existe déjà un compte principal il sera remplacé
+            </p>
+        </div>
+        }
     </div>
 
-    <!-- Actions du Formulaire -->
     <div class="form-actions">
-        @if (this.accountService.editingAccount() !== null) {
+        @if (accountService.editingAccount() !== null) {
         <button type="button" class="btn-secondary-link" (click)="onCancelEdit()">Annuler</button>
         }
+
         <button type="submit" class="btn-primary" [disabled]="accountForm.invalid">
-            {{ this.accountService.editingAccount() !== null ? 'Enregistrer' : 'Ajouter' }}
+            {{ accountService.editingAccount() !== null ? 'Enregistrer' : 'Ajouter' }}
         </button>
     </div>
 </form>

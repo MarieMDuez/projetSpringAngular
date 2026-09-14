@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { CategoryService } from './category.service';
-import { Category } from './category.model';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { environment } from '../../../environments/environment';
+import { Category } from './category.model';
+import { CategoryService } from './category.service';
 
 describe('CategoryService', () => {
   let service: CategoryService;
@@ -43,7 +43,7 @@ describe('CategoryService', () => {
     req.flush(mockCategories);
 
     expect(service.allCategories()).toHaveLength(3);
-    expect(service.activeCategories()).toHaveLength(2); // Filtre structurel isActive === true
+    expect(service.activeCategories()).toHaveLength(2);
   });
 
   it('should POST a new category and push it to the state array', () => {
@@ -86,13 +86,12 @@ describe('CategoryService', () => {
 
     const req = httpMock.expectOne(`${apiUrl}/2`);
     expect(req.request.method).toBe('DELETE');
-    // Le Back renvoie false -> L'élément reste mais passe inactif (Soft Delete)
     req.flush(false);
 
-    expect(service.allCategories()).toHaveLength(3); // La ligne est préservée
+    expect(service.allCategories()).toHaveLength(3);
     const category2 = service.allCategories().find((c) => c.id === 2);
     expect(category2?.isActive).toBe(false);
-    expect(service.activeCategories()).toHaveLength(1); // Le sélecteur réactif s'est mis à jour
+    expect(service.activeCategories()).toHaveLength(1);
   });
 
   it('should process hard-delete by evicting the row from the signal when API returns true', () => {
@@ -102,10 +101,10 @@ describe('CategoryService', () => {
 
     const req = httpMock.expectOne(`${apiUrl}/2`);
     expect(req.request.method).toBe('DELETE');
-    // Le Back renvoie true -> L'élément doit être éjecté (Hard Delete)
+
     req.flush(true);
 
-    expect(service.allCategories()).toHaveLength(2); // La ligne a disparu
+    expect(service.allCategories()).toHaveLength(2);
     expect(service.allCategories().some((c) => c.id === 2)).toBe(false);
   });
 
@@ -123,7 +122,6 @@ describe('CategoryService', () => {
     expect(req.request.method).toBe('POST');
     req.flush(orderedCollection);
 
-    // Validation de la persistance en masse (Drag and Drop)
     expect(service.allCategories()).toHaveLength(2);
     expect(service.allCategories()[0].id).toBe(2);
   });

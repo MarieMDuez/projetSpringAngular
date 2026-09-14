@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, signal, ViewEncapsulation } from '@angular/core';
 
 import { BalancesComponent } from '../../dashboards/balances/balances.component';
 import { TransactionsFilters } from '../transactions-filters/transactions-filters';

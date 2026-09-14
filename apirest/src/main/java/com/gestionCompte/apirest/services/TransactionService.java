@@ -43,7 +43,6 @@ public class TransactionService {
 		Specification<Transaction> spec = (root, query, cb) -> {
 			var predicate = cb.conjunction();
 
-			// Optimisation N+1 Select
 			if (Long.class != query.getResultType()) {
 				root.fetch("account", jakarta.persistence.criteria.JoinType.INNER);
 				root.fetch("category", jakarta.persistence.criteria.JoinType.INNER);
@@ -172,10 +171,7 @@ public class TransactionService {
 				if (dateTransaction.getMonthValue() == expectedParentMonth
 						&& dateTransaction.getYear() == expedtedParentYear) {
 
-					int targetDay = dateTransaction.getDayOfMonth(); // Si on a déjà la transaction qui a le parent ID
-																		// on
-																		// arrête là
-																		// Si non on continue
+					int targetDay = dateTransaction.getDayOfMonth(); 
 					int maxDayInMonth = LocalDate.of(targetYear, targetMonth, 1).lengthOfMonth();
 					int safeDay = Math.min(targetDay, maxDayInMonth);
 

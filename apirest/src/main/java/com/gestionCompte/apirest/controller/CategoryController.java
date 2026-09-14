@@ -68,6 +68,11 @@ public class CategoryController {
 	    	boolean isHardDeleted = categoryService.deleteCategory(id);
 	    	return ResponseEntity.ok(isHardDeleted);
 	    }
+	    @PutMapping("/{id}/set-active") 
+	    public ResponseEntity<Category> setActiveCategory(@PathVariable Long id) {
+	    	Category updatedCategory = categoryService.setActiveCategory(id);
+	        return ResponseEntity.ok(updatedCategory); 
+	    }
 	    
 
 }

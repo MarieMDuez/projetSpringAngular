@@ -11,11 +11,9 @@ export class CategoryService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/categories`;
 
-  // Le State brut (privé)
   private allCategoriesSignal = signal<Category[]>([]);
   public editingCategory = signal<Category | null>(null);
 
-  // Les Sélecteurs (publics et réactifs)
   public allCategories = computed(() => this.allCategoriesSignal());
   public activeCategories = computed(() => this.allCategoriesSignal().filter((a) => a.isActive));
 
@@ -47,13 +45,28 @@ export class CategoryService {
     return this.http.delete<boolean>(`${this.apiUrl}/${id}`).pipe(
       tap((isHardDelete) => {
         if (!isHardDelete) {
-          // Le service nettoie le State global en filtrant l'ID supprimé
           this.allCategoriesSignal.update((current) =>
             current.map((cat) => (cat.id === id ? { ...cat, isActive: false } : cat)),
           );
         } else {
           this.allCategoriesSignal.update((current) => current.filter((cat) => cat.id !== id));
         }
+      }),
+    );
+  }
+
+  setCategoryActive(id: number, category: Category): Observable<Category> {
+    return this.http.put<Category>(`${this.apiUrl}/${id}/set-active`, category).pipe(
+      tap((result) => {
+        this.allCategoriesSignal.update((current) =>
+          current.map((a) => {
+            if (a.id === id) {
+              return result;
+            } else {
+              return { ...a };
+            }
+          }),
+        );
       }),
     );
   }

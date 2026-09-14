@@ -1,9 +1,9 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, effect, inject, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 import { Account } from '../account.model';
 import { AccountService } from '../account.service';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
-import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-account-form',
@@ -19,11 +19,12 @@ export class AccountFormComponent implements OnInit {
   private toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
+  saveSuccess = output<number>();
 
   constructor() {
     effect(() => {
-      const category = this.accountService.editingAccount();
-      if (category) this.onEdit(category);
+      const account = this.accountService.editingAccount();
+      if (account && this.accountForm) this.onEdit(account);
     });
   }
   ngOnInit() {
@@ -54,7 +55,7 @@ export class AccountFormComponent implements OnInit {
 
     const accountVide = {
       id: undefined,
-      label: '',
+      label: null,
       initialBalance: 0,
       isDefault: false,
       isActive: true,
@@ -92,8 +93,9 @@ export class AccountFormComponent implements OnInit {
       };
 
       this.accountService.createAccount(newAccount).subscribe({
-        next: () => {
+        next: (newAccount: Account) => {
           this.toastService.show('Compte créé avec succès !', 'success');
+          this.saveSuccess.emit(newAccount.id!);
 
           this.accountForm.reset({
             label: '',
@@ -133,7 +135,7 @@ export class AccountFormComponent implements OnInit {
   public onCancelEdit(): void {
     const accountVide = {
       id: null,
-      label: '',
+      label: null,
       initialBalance: 0,
       isDefault: false,
       isActive: true,

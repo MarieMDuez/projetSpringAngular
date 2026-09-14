@@ -1,4 +1,4 @@
-<div class="quick-add-container" [class.edit-mode]="this.transactionService.transactionToEdit()?.id" id="editForm">
+<div class="quick-add-container" [class.edit-mode]="transactionService.transactionToEdit()?.id" id="editForm">
 
     <h3 class="section-title-tracker">
         {{ transactionService.transactionToEdit()?.id ? 'Modifier la transaction' : 'Ajouter une transaction' }}
@@ -6,14 +6,12 @@
 
     <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="form-grid-inline">
 
-        <!-- Champ : Date -->
         <div class="form-group-tracker">
             <label for="emissionDate">Date</label>
             <input id="emissionDate" type="date" formControlName="emissionDate"
                 [class.input-error]="transactionForm.get('emissionDate')?.touched && transactionForm.get('emissionDate')?.invalid">
         </div>
 
-        <!-- Champ : Compte -->
         <div class="form-group-tracker">
             <label for="accountId">Compte</label>
             <select id="accountId" formControlName="accountId" appSelectLoop>
@@ -22,9 +20,10 @@
                 <option [value]="account.id">{{ account.label }} {{ !account.isActive ? ' (Désactivé)' : '' }}</option>
                 }
             </select>
+            <button [appOpenDialog]="addAccount" type="button" class="btn-primary btn-plus">
+                Ajouter
+            </button>
         </div>
-
-        <!-- Champ : Moyen de Paiement -->
         <div class="form-group-tracker">
             <label for="paymentMethodId">Moyen de Paiement</label>
             <select id="paymentMethodId" formControlName="paymentMethodId" appSelectLoop>
@@ -33,9 +32,10 @@
                 <option [value]="paymentMethod.id">{{ paymentMethod.label }}</option>
                 }
             </select>
+            <button [appOpenDialog]="addPaymentMethod" type="button" class="btn-primary btn-plus">
+                Ajouter
+            </button>
         </div>
-
-        <!-- Champ : Catégorie -->
         <div class="form-group-tracker">
             <label for="categoryId">Catégorie</label>
             <select id="categoryId" formControlName="categoryId" appSelectLoop>
@@ -44,15 +44,14 @@
                 <option [value]="categorie.id">{{ categorie.label }}</option>
                 }
             </select>
+            <button [appOpenDialog]="addCategory" type="button" class="btn-primary btn-plus">
+                Ajouter
+            </button>
         </div>
-
-        <!-- Champ : Description -->
         <div class="form-group-tracker wide-field">
             <label for="description">Description</label>
             <input id="description" type="text" formControlName="description" placeholder="Facultatif">
         </div>
-
-        <!-- Champ : Type (Débit / Crédit) -->
         <div class="form-group-tracker">
             <label for="transactionType">Type</label>
             <select id="transactionType" formControlName="type">
@@ -60,21 +59,15 @@
                 <option value="CREDIT">Crédit (+)</option>
             </select>
         </div>
-
-        <!-- Champ : Montant -->
         <div class="form-group-tracker">
             <label for="amount">Montant</label>
             <input id="amount" type="number" step="0.01" formControlName="amount" placeholder="0.00"
                 class="input-amount">
         </div>
-
-        <!-- Champ : Récurrence (Plus étroit) -->
         <div class="form-group-tracker narrow-field">
             <label for="recurrenceMonths">Réc. (Mois)</label>
             <input id="recurrenceMonths" type="number" formControlName="recurrenceMonths" placeholder="0" min="0">
         </div>
-
-        <!-- Champ : Pointée (Checkbox alignée) -->
         <div class="form-group-tracker checkbox-field">
             <label class="label-checkbox-wrapper">
                 <input type="checkbox" formControlName="isChecked" class="checkbox-pointer"
@@ -82,8 +75,6 @@
                 <span class="checkbox-label-text">Pointée</span>
             </label>
         </div>
-
-        <!-- Actions : Boutons Soumission / Annulation -->
         <div class="form-actions-wrapper">
             @if (transactionService.transactionToEdit()?.id) {
             <button type="button" class="btn-secondary-link" (click)="onCancelEdit()">Annuler</button>
@@ -95,9 +86,7 @@
 
     </form>
 
-    <!-- ZONE DES OPTIONS SECONDAIRES (Placée proprement en bas de la boîte) -->
     <div class="filters-footer-tools">
-        <!-- Outil : Générer les récurrentes -->
         <div class="tool-generate-block">
             <span class="tool-label">Générer les transactions récurrentes pour :</span>
             <div class="tool-inputs">
@@ -121,3 +110,19 @@
     </div>
 
 </div>
+
+<app-modal #addPaymentMethod options="empty">
+    <app-payment-method-form
+        (saveSuccess)="onPaymentMethodCreated($event);addPaymentMethod.close()"></app-payment-method-form>
+</app-modal>
+
+
+
+<app-modal #addAccount options="empty">
+    <app-account-form (saveSuccess)="onAccountCreated($event);addAccount.close()"></app-account-form>
+</app-modal>
+
+
+<app-modal #addCategory options="empty">
+    <app-category-form (saveSuccess)="onCategoryCreated($event);addCategory.close()"></app-category-form>
+</app-modal>

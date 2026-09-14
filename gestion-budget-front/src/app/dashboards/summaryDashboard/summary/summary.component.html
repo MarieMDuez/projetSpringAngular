@@ -1,0 +1,44 @@
+<div class="balances-container">
+    <h1>Vue Globale</h1>
+
+    <div class="balances-summary">
+
+        <div class="balance-card card-real">
+            <span class="balance-title">Solde Réel Global</span>
+            <span class="balance-amount tabular-nums">
+                {{ summaryData()?.currentGlobalBalance| currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
+            </span>
+        </div>
+
+        <div class="balance-card card-projected">
+            <span class="balance-title">Solde Prévisionnel Global</span>
+            <span class="balance-amount tabular-nums">
+                {{ summaryData()?.projectedGlobalBalance | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
+            </span>
+        </div>
+
+    </div>
+</div>
+<h2>Détail des comptes</h2>
+
+<div class="accounts-grid">
+    @for (compte of summaryData()?.accountsDetails; track compte.id) {
+    <div class="account-item-card">
+        <h3>{{ compte.label }}</h3>
+
+        <div class="account-row">
+            <span style="color: #166534; font-weight: 600;">Réel :</span>
+            <span class="tabular-nums" style="color: #15803d; font-weight: 700;">
+                {{ compte.currentBalance | currency:'EUR' }}
+            </span>
+        </div>
+
+        <div class="account-row">
+            <span style="color: #5b21b6; font-weight: 600;">Prévisionnel :</span>
+            <span class="tabular-nums" style="color: #6d28d9; font-weight: 700;">
+                {{ compte.projectedBalance | currency:'EUR' }}
+            </span>
+        </div>
+    </div>
+    }
+</div>

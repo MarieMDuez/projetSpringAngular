@@ -1,18 +1,23 @@
+import { NO_ERRORS_SCHEMA, signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { TransactionFormComponent } from './transaction-form.component';
-import { TransactionService } from '../../transaction.service';
-import { AccountService } from '../../../settings/account/account.service';
-import { CategoryService } from '../../../settings/category/category.service';
-import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
-import { vi, describe, beforeEach, it, expect, Mock } from 'vitest';
-import { signal, WritableSignal, NO_ERRORS_SCHEMA } from '@angular/core';
-import { Transaction } from '../../transaction.model';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { Account } from '../../../settings/account/account.model';
+import { AccountService } from '../../../settings/account/account.service';
 import { Category } from '../../../settings/category/category.model';
+import { CategoryService } from '../../../settings/category/category.service';
 import { PaymentMethod } from '../../../settings/payment-method/payment-method.model';
+import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Transaction } from '../../transaction.model';
+import { TransactionService } from '../../transaction.service';
+import { TransactionFormComponent } from './transaction-form.component';
+
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+
+registerLocaleData(localeFr);
 
 describe('TransactionFormComponent', () => {
   let component: TransactionFormComponent;
@@ -25,7 +30,6 @@ describe('TransactionFormComponent', () => {
 
   const mockToastService: { show: Mock } = { show: vi.fn() };
 
-  // Signal réactif pour piloter l'état d'édition à la volée
   let transactionToEditSignal: WritableSignal<Transaction | null>;
 
   beforeEach(async () => {
@@ -37,24 +41,36 @@ describe('TransactionFormComponent', () => {
       updateTransaction: vi.fn().mockReturnValue(of({})),
       generateRecurrentTransactions: vi.fn().mockReturnValue(of({})),
       allTransactionsSignal: signal([]),
+      selectedAccountIdFilter: signal<number | null>(null),
     };
 
     mockAccountService = {
-      activeAccounts: signal<Partial<Account>[]>([
-        { id: 1, label: 'Compte Courant', isActive: true },
-      ]) as any,
+      activeAccounts: signal<Account[]>([
+        {
+          id: 1,
+          label: 'Compte Courant',
+          isActive: true,
+          initialBalance: 0,
+          isDefault: false,
+          position: 1,
+        },
+      ]),
+
+      editingAccount: signal<Account | null>(null),
     };
 
     mockCategoryService = {
-      activeCategories: signal<Partial<Category>[]>([
-        { id: 2, label: 'Alimentation', isActive: true },
-      ]) as any,
+      activeCategories: signal<Category[]>([
+        { id: 2, label: 'Alimentation', isActive: true, position: 1 },
+      ]),
+      editingCategory: signal<Category | null>(null),
     };
 
     mockPaymentMethodService = {
-      activePaymentMethods: signal<Partial<PaymentMethod>[]>([
-        { id: 3, label: 'Carte', isActive: true },
-      ]) as any,
+      activePaymentMethods: signal<PaymentMethod[]>([
+        { id: 3, label: 'Carte', isActive: true, position: 1 },
+      ]),
+      editingPaymentMethod: signal<PaymentMethod | null>(null),
     };
 
     await TestBed.configureTestingModule({
@@ -66,12 +82,12 @@ describe('TransactionFormComponent', () => {
         { provide: PaymentMethodService, useValue: mockPaymentMethodService },
         { provide: ToastService, useValue: mockToastService },
       ],
-      schemas: [NO_ERRORS_SCHEMA], // Isole le template contre les directives de navigation ou CSS tierces
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TransactionFormComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Déclenchement de l'initialisation du formulaire réactif
+    fixture.detectChanges();
   });
 
   it('should create the component and initialize with default values', () => {
@@ -112,7 +128,6 @@ describe('TransactionFormComponent', () => {
 
     component['onSubmit']();
 
-    // Assertion stricte sur la structure du DTO de transaction attendu par l'API Java
     expect(mockTransactionService.createTransaction as Mock).toHaveBeenCalledWith({
       amount: 150.0,
       emissionDate: '2026-05-12',
@@ -144,11 +159,10 @@ describe('TransactionFormComponent', () => {
       parentTransactionId: null,
     };
 
-    // Propagation de la transaction à modifier
     transactionToEditSignal.set(txToEdit);
 
     fixture.detectChanges();
-    await fixture.whenStable(); // Attente du traitement asynchrone du macro-task de l'effect()
+    await fixture.whenStable();
 
     expect(transactionForm.value.amount).toBe(45.5);
     expect(transactionForm.value.type).toBe('CREDIT');

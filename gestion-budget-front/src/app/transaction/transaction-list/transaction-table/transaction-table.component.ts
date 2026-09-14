@@ -1,18 +1,19 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { TransactionService } from '../../transaction.service';
 
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccountService } from '../../../settings/account/account.service';
 import { CategoryService } from '../../../settings/category/category.service';
 import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 import { FindByIdPipe } from '../../../shared/pipes/find-by-id-pipe';
 import { Transaction } from '../../transaction.model';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-transaction-table',
-  imports: [ReactiveFormsModule, FindByIdPipe, CommonModule, DatePipe],
+  imports: [ReactiveFormsModule, FindByIdPipe, CommonModule, DatePipe, ScrollingModule],
   templateUrl: './transaction-table.component.html',
   styleUrl: './transaction-table.component.scss',
 })
@@ -29,11 +30,19 @@ export class TransactionTableComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  protected trackByTransactionId(index: number, transaction: Transaction): number {
+    if (transaction?.id) {
+      return transaction.id;
+    } else {
+      return -1;
+    }
+  }
+
   public onEdit(transaction: Transaction): void {
     this.transactionService.transactionToEdit.set(transaction);
 
     /*Pour remonter au formulaire qui s'auto-rempli*/
-    const formElement = document.getElementById('editForm');
+    const formElement = document.getElementById('editFormTransaction');
     if (formElement) {
       formElement.scrollIntoView({
         behavior: 'smooth',

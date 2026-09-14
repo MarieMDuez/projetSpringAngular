@@ -1,19 +1,16 @@
 <div class="category-list-container">
-  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-category-form></app-category-form>
 
   <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (category of categories(); track category.id) {
     <div class="data-item" [class.item-disabled]="!category.isActive" cdkDrag>
 
-      <!-- Poignée de glissement (Drag Handle) -->
       @if (category.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
       <span class="drag-handle-placeholder"></span>
       }
 
-      <!-- Informations de la Catégorie -->
       <div class="item-info">
         <span class="item-name">
           {{ category.label }}
@@ -23,11 +20,15 @@
         </span>
       </div>
 
-      <!-- Actions sur la Catégorie -->
       <div class="item-actions">
         @if (category.isActive) {
         <button type="button" class="btn-icon" (click)="onEdit(category)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon" (click)="onDelete(category)" title="Supprimer">🗑️</button>
+        <button type="button" class="btn-icon" [appOpenDialog]="deleteCategoryModal"
+          (click)="categoryToDelete.set(category)" title="Supprimer la catégorie">🗑️</button>
+        }
+        @else{
+        <button type="button" class="btn-icon" [appOpenDialog]="setActiveCategoryModal"
+          (click)="categoryToSetActive.set(category)" title="Réactiver">Réactiver</button>
         }
       </div>
 
@@ -37,3 +38,26 @@
     }
   </div>
 </div>
+
+<app-modal #deleteCategoryModal title="Suppression de catégorie" options="accept-reject" type="danger"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmDeleteAction($event)">
+
+  @if (categoryToDelete(); as category) {
+  <p>
+    Êtes-vous sûr de vouloir supprimer la catégorie <strong>{{ category.label }}</strong> ?
+  </p>
+  <p class="text-danger">
+    Si des transactions sont rattachées à cette catégorie, elle sera archivée.
+  </p>
+  }
+</app-modal>
+
+<app-modal #setActiveCategoryModal title="Réactiver la catégorie" options="accept-reject" type="warning"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmSetActiveAction($event)">
+
+  @if (categoryToSetActive(); as category) {
+  <p>
+    Êtes-vous sûr de vouloir réactiver la catégorie <strong>{{ category.label }}</strong> ?
+  </p>
+  }
+</app-modal>

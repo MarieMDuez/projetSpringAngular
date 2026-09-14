@@ -1,23 +1,22 @@
 <form [formGroup]="paymentMethodForm" (ngSubmit)="onSubmit()" class="form-inline" id="editForm"
-    [class.edit-mode]="this.paymentMethodService.editingPaymentMethod()?.id">
+    (keydown.enter)="$event.preventDefault(); paymentMethodForm.valid && onSubmit()"
+    [class.edit-mode]="paymentMethodService.editingPaymentMethod()?.id">
 
-    <!-- Champ : Nom du moyen de paiement -->
     <div class="form-group">
         <label for="paymentMethodLabel">Nom du moyen de paiement</label>
         <input id="paymentMethodLabel" type="text" formControlName="label"
-            placeholder="Ex: Virement, Carte Bancaire, Espèces...">
+            placeholder="Ex: Virement, Carte Bancaire, Espèces..." autofocus>
         @if (paymentMethodForm.get('label')?.touched && paymentMethodForm.get('label')?.invalid) {
         <small class="error-text">Obligatoire (3 car. min)</small>
         }
     </div>
 
-    <!-- Actions du Formulaire -->
     <div class="form-actions">
-        @if (this.paymentMethodService.editingPaymentMethod() !== null) {
+        @if (paymentMethodService.editingPaymentMethod() !== null) {
         <button type="button" class="btn-secondary-link" (click)="onCancelEdit()">Annuler</button>
         }
         <button type="submit" class="btn-primary" [disabled]="paymentMethodForm.invalid">
-            {{ this.paymentMethodService.editingPaymentMethod() !== null ? 'Enregistrer' : 'Ajouter' }}
+            {{ paymentMethodService.editingPaymentMethod() !== null ? 'Enregistrer' : 'Ajouter' }}
         </button>
     </div>
 </form>

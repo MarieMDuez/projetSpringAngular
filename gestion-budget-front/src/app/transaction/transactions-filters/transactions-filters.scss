@@ -1,4 +1,3 @@
-// Alignement global de la ligne d'actions
 .actions-clear-wrapper {
   height: 36px;
   display: flex;
@@ -10,30 +9,26 @@
   white-space: nowrap;
 }
 
-// Utilitaire d'alignement de texte
 .text-center {
   text-align: center;
 }
 
-// Structure interne du groupe Date
 .date-filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-// Sélecteur de limite dans le footer
 .select-limit {
   width: 160px;
   height: 34px;
 }
 
-// Dispatch chirurgical des colonnes (Gestion propre de la grille inline)
 .form-group-tracker {
   &.col-date       { width: 11%; min-width: 11%; }
   &.col-account    { width: 12%; min-width: 12%; }
   &.col-payment    { width: 12%; min-width: 12%; }
-  &.col-category   { width: 18%; min-width: 12%; } // Garde le ratio original du template
+  &.col-category   { width: 18%; min-width: 12%; } 
   &.col-flux       { width: 18%; min-width: 18%; }
   &.col-recurrence { width: 8%;  min-width: 8%;  }
   &.col-pointing   { width: 5%;  min-width: 5%;  }

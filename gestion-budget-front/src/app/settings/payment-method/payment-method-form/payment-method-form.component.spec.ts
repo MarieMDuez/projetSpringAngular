@@ -4,14 +4,13 @@ import { PaymentMethodService } from '../payment-method.service';
 import { PaymentMethod } from '../payment-method.model';
 import { signal, WritableSignal } from '@angular/core';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 describe('PaymentMethodFormComponent', () => {
   let component: PaymentMethodFormComponent;
   let fixture: ComponentFixture<PaymentMethodFormComponent>;
 
-  // Isolation du State global via des stubs de signaux
   const mockAllPaymentMethods = signal<PaymentMethod[]>([]);
   const mockEditingPaymentMethod: WritableSignal<PaymentMethod | null> =
     signal<PaymentMethod | null>(null);
@@ -40,7 +39,10 @@ describe('PaymentMethodFormComponent', () => {
 
     fixture = TestBed.createComponent(PaymentMethodFormComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Déclenche ngOnInit et l'initialisation du formulaire réactif
+    fixture.detectChanges();
+  });
+  afterEach(() => {
+    fixture.destroy();
   });
 
   it('should create the component and initialize the reactive form', () => {
@@ -53,7 +55,6 @@ describe('PaymentMethodFormComponent', () => {
     const form = component['paymentMethodForm'];
     expect(form.valid).toBe(false);
 
-    // Insertion d'un libellé trop court
     form.patchValue({ label: 'CB' });
     expect(form.valid).toBe(false);
 
@@ -69,10 +70,8 @@ describe('PaymentMethodFormComponent', () => {
       position: 1,
     };
 
-    // Simulation de l'action utilisateur "Modifier" depuis le tableau parent
     mockEditingPaymentMethod.set(targetMethod);
 
-    // Attente du cycle de propagation de l'effect() réactif
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -86,7 +85,7 @@ describe('PaymentMethodFormComponent', () => {
       isActive: true,
       position: 0,
     };
-    mockAllPaymentMethods.set([]); // Liste vide, l'élément prendra la position 0
+    mockAllPaymentMethods.set([]);
     (mockPaymentMethodService.createPaymentMethod as Mock).mockReturnValue(of(mockCreatedMethod));
 
     component['paymentMethodForm'].patchValue({ label: 'Virement' });
@@ -98,7 +97,7 @@ describe('PaymentMethodFormComponent', () => {
         position: 0,
       }),
     );
-    expect(component['paymentMethodForm'].get('label')?.value).toBe(''); // Formulaire réinitialisé
+    expect(component['paymentMethodForm'].get('label')?.value).toBe('');
     expect(mockToastService.show).toHaveBeenCalledWith(
       'Moyen de paiement créé avec succès !',
       'success',
@@ -120,11 +119,12 @@ describe('PaymentMethodFormComponent', () => {
     component['paymentMethodForm'].patchValue({ label: 'Prélèvement SEPA' });
     component['onSubmit']();
 
-    expect(mockPaymentMethodService.updatePaymentMethod).toHaveBeenCalledWith(
-      42,
-      expect.any(Object),
-    );
-    expect(mockEditingPaymentMethod()).toBeNull(); // Libération de l'état d'édition
+    expect(mockPaymentMethodService.updatePaymentMethod).toHaveBeenCalledWith(42, {
+      id: 42,
+      label: 'Prélèvement SEPA',
+      isActive: true,
+    });
+    expect(mockEditingPaymentMethod()).toBeNull();
   });
 
   it('should capture backend failure during creation and map it to the UI error signal', () => {
@@ -142,7 +142,6 @@ describe('PaymentMethodFormComponent', () => {
   });
 
   it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
-    // GIVEN : L'API renvoie un statut 409
     const errorResponse = { status: 409 };
     (mockPaymentMethodService.createPaymentMethod as Mock).mockReturnValue(
       throwError(() => errorResponse),
@@ -150,10 +149,8 @@ describe('PaymentMethodFormComponent', () => {
 
     component['paymentMethodForm'].patchValue({ label: 'espèces' });
 
-    // WHEN
     component['onSubmit']();
 
-    // THEN
     expect(mockToastService.show).toHaveBeenCalledWith(
       'Une erreur est survenue : ce nom de moyen de paiement existe déjà',
       'error',
@@ -167,6 +164,6 @@ describe('PaymentMethodFormComponent', () => {
     component.onCancelEdit();
 
     expect(mockEditingPaymentMethod()).toBeNull();
-    expect(component['paymentMethodForm'].get('label')?.value).toBe('');
+    expect(component['paymentMethodForm'].get('label')?.value).toBe(null);
   });
 });

@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { DashboardService } from './dashboard.service';
-import { balanceDto } from './balances/balance.model';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { environment } from '../../environments/environment';
+import { balanceDto } from './balances/balance.model';
+import { DashboardService } from './dashboard.service';
 
 describe('DashboardService', () => {
   let service: DashboardService;
@@ -17,7 +17,7 @@ describe('DashboardService', () => {
     label: 'Compte Courant',
     initialBalance: 1000,
     currentBalance: 850,
-    provisionalBalance: 1200,
+    projectedBalance: 1200,
   };
 
   beforeEach(() => {

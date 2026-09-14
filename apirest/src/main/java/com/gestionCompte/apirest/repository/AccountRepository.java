@@ -9,6 +9,7 @@ import com.gestionCompte.apirest.model.Account;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 	List<Account> findByIsActiveTrue();
+	List<Account> findByIsActiveTrueOrderByPositionAsc();
 	Optional<Account> findByIsDefaultTrue();
 	boolean existsByLabelIgnoreCase(String label);
 }

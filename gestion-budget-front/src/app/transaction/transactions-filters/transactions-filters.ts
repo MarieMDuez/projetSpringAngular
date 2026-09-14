@@ -1,5 +1,5 @@
 import { TitleCasePipe } from '@angular/common';
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, forkJoin, of, switchMap } from 'rxjs';
 import { DashboardService } from '../../dashboards/dashboard.service';
@@ -30,10 +30,9 @@ export class TransactionsFilters implements OnInit {
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
   constructor() {
-    //écoute du signal pour mettre à jour le filtre de compte dans les filtres et dans la sélection globale.
     effect(() => {
       const serviceAccountId = this.transactionService.selectedAccountIdFilter();
-      this.filterForm?.get('accountId')?.setValue(serviceAccountId ?? '', { emitEvent: false });
+      this.filterForm?.get('accountId')?.setValue(serviceAccountId ?? '', { emitEvent: true });
     });
   }
 
@@ -47,8 +46,10 @@ export class TransactionsFilters implements OnInit {
   }
 
   initFilterForm() {
+    const currentAccountId = this.transactionService.selectedAccountIdFilter();
+
     this.filterForm = this.myFormBuilder.group({
-      accountId: [''],
+      accountId: [currentAccountId !== null ? currentAccountId.toString() : ''],
       categoryId: [''],
       paymentMethodId: [''],
       type: [''],
@@ -62,10 +63,12 @@ export class TransactionsFilters implements OnInit {
   }
 
   setupDynamicFiltering() {
-    const initialAccountId = this.filterForm.value.accountId;
+    const initialAccountId = this.transactionService.selectedAccountIdFilter();
+
     this.transactionService.selectedAccountIdFilter.set(
       initialAccountId ? Number(initialAccountId) : null,
     );
+
     this.transactionService.loadFilteredTransactions(this.filterForm.value).subscribe({
       error: (err) => console.error('Erreur de filtrage', err),
     });
@@ -74,7 +77,6 @@ export class TransactionsFilters implements OnInit {
       .pipe(
         debounceTime(300),
         switchMap((currentFilters) => {
-          // mise à jour des transactions uniquement si l'année et le jour ont des valeurs valides
           const yearStr = currentFilters.year?.toString() || '';
           const dayNum = currentFilters.day ? Number(currentFilters.day) : null;
           if (
@@ -87,7 +89,6 @@ export class TransactionsFilters implements OnInit {
           const accountId = currentFilters?.accountId;
           this.transactionService.selectedAccountIdFilter.set(accountId ? Number(accountId) : null);
 
-          //On retire la limite du nombre de transactions affichées si un mois ou une année est sélectionné, ou si on sélectionne "tout afficher"
           let activeLimit = currentFilters.limit;
           if (currentFilters.year || currentFilters.month || Number(currentFilters.limit) === 0) {
             activeLimit = '';
@@ -139,7 +140,6 @@ export class TransactionsFilters implements OnInit {
     const control = this.filterForm.get(controlName);
     if (!control) return;
     control.setValue('');
-    //Pour bien clear le filtre global également (pour le composant "Balances")
     if (controlName === 'accountId') {
       this.transactionService.selectedAccountIdFilter.set(null);
     }
@@ -149,4 +149,10 @@ export class TransactionsFilters implements OnInit {
     value: i + 1,
     label: new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(new Date(2000, i, 1)),
   }));
+
+  protected isFilterOpen = signal<boolean>(false);
+
+  protected toggleFilterOpen(): void {
+    this.isFilterOpen.update((v) => !v);
+  }
 }

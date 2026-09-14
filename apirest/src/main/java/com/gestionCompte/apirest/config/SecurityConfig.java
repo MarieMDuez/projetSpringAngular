@@ -13,7 +13,7 @@ import java.io.IOException;
 @Configuration
 public class SecurityConfig implements WebMvcConfigurer {
 
-    // Gestion du CORS (Pour ton mode dev local sur le port 4200)
+    // Gestion du CORS
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**") 
@@ -33,11 +33,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                     @Override
                     protected Resource getResource(String resourcePath, Resource location) throws IOException {
                         Resource requestedResource = location.createRelative(resourcePath);
-                        // Si le fichier existe (index.html, main.js, styles.css, images, etc.), on le sert
                         if (requestedResource.exists() && requestedResource.isReadable()) {
                             return requestedResource;
                         }
-                        // Sinon (ex: route Angular /transactions), on redirige vers l'index.html
                         return new ClassPathResource("/static/index.html");
                     }
                 });

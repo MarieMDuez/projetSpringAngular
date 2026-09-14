@@ -1,24 +1,22 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AccountListComponent } from './account-list.component';
-import { AccountService } from '../account.service';
-import { Account } from '../account.model';
-import { signal, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Account } from '../account.model';
+import { AccountService } from '../account.service';
+import { AccountListComponent } from './account-list.component';
 
 describe('AccountListComponent', () => {
   let component: AccountListComponent;
   let fixture: ComponentFixture<AccountListComponent>;
 
-  // Isolation du State global via des stubs
   const mockAllAccounts = signal<Account[]>([]);
   const mockEditingAccount = signal<Account | null>(null);
 
   const mockToastService: { show: Mock } = { show: vi.fn() };
 
-  // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   const mockAccountService: Partial<AccountService> = {
     allAccounts: mockAllAccounts,
@@ -39,7 +37,6 @@ describe('AccountListComponent', () => {
         { provide: AccountService, useValue: mockAccountService },
         { provide: ToastService, useValue: mockToastService },
       ],
-      schemas: [NO_ERRORS_SCHEMA], // Ignore le composant enfant <app-account-form> lors du rendu du test
     }).compileComponents();
 
     fixture = TestBed.createComponent(AccountListComponent);
@@ -75,8 +72,8 @@ describe('AccountListComponent', () => {
       isActive: true,
       position: 1,
     };
-    vi.spyOn(window, 'confirm').mockReturnValue(true); // Simulation du clic "OK" sur le confirm()
-    (mockAccountService.deleteAccount as Mock).mockReturnValue(of(false)); // Simulation d'un soft-delete (archivage) par le back
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    (mockAccountService.deleteAccount as Mock).mockReturnValue(of(false));
 
     component['onDelete'](targetAccount);
 
@@ -96,11 +93,11 @@ describe('AccountListComponent', () => {
       isActive: true,
       position: 1,
     };
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // Simulation du clic "Annuler"
+    component['accountToDelete'].set(targetAccount);
 
-    component['onDelete'](targetAccount);
+    component['onConfirmDeleteAction']('cancel');
 
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(component['accountToDelete']()).toBeNull();
     expect(mockAccountService.deleteAccount).not.toHaveBeenCalled();
   });
 
@@ -146,15 +143,13 @@ describe('AccountListComponent', () => {
 
     (mockAccountService.saveAll as Mock).mockReturnValue(of([accountB, accountA]));
 
-    // Création d'un faux événement CDK Drag&Drop inversant les index 0 et 1
     const mockDragDropEvent = {
       previousIndex: 0,
       currentIndex: 1,
     } as CdkDragDrop<Account[]>;
 
-    component.onDrop(mockDragDropEvent);
+    component['onDrop'](mockDragDropEvent);
 
-    // Vérification que l'API est appelée avec les positions recalculées à la volée (0, 1)
     expect(mockAccountService.saveAll).toHaveBeenCalledWith([
       expect.objectContaining({ id: 20, position: 0 }),
       expect.objectContaining({ id: 10, position: 1 }),

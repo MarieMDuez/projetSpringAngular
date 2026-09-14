@@ -11,12 +11,10 @@ export class PaymentMethodService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/payment_methods`;
 
-  // Le State brut (privé)
   private allPaymentMethodsSignal = signal<PaymentMethod[]>([]);
 
   public editingPaymentMethod = signal<PaymentMethod | null>(null);
 
-  // Les Sélecteurs (publics et réactifs)
   public allPaymentMethods = computed(() => this.allPaymentMethodsSignal());
   public activePaymentMethods = computed(() =>
     this.allPaymentMethodsSignal().filter((a) => a.isActive),
@@ -31,7 +29,6 @@ export class PaymentMethodService {
   createPaymentMethod(paymentMethod: PaymentMethod): Observable<PaymentMethod> {
     return this.http.post<PaymentMethod>(this.apiUrl, paymentMethod).pipe(
       tap((createdPaymentMethod) => {
-        // C'est le service qui met à jour le State global !
         this.allPaymentMethodsSignal.update((current) => [...current, createdPaymentMethod]);
       }),
     );
@@ -51,7 +48,6 @@ export class PaymentMethodService {
     return this.http.delete<boolean>(`${this.apiUrl}/${id}`).pipe(
       tap((isHardDelete) => {
         if (!isHardDelete) {
-          // Le service nettoie le State global en filtrant l'ID supprimé
           this.allPaymentMethodsSignal.update((current) =>
             current.map((paymentMethod) =>
               paymentMethod.id === id ? { ...paymentMethod, isActive: false } : paymentMethod,
@@ -62,6 +58,22 @@ export class PaymentMethodService {
             current.filter((paymentMethod) => paymentMethod.id !== id),
           );
         }
+      }),
+    );
+  }
+
+  setPaymentMethodActive(id: number, paymentMethod: PaymentMethod): Observable<PaymentMethod> {
+    return this.http.put<PaymentMethod>(`${this.apiUrl}/${id}/set-active`, paymentMethod).pipe(
+      tap((result) => {
+        this.allPaymentMethodsSignal.update((current) =>
+          current.map((a) => {
+            if (a.id === id) {
+              return result;
+            } else {
+              return { ...a };
+            }
+          }),
+        );
       }),
     );
   }

@@ -1,6 +1,6 @@
 export interface Transaction {
   id?: number;
-  amount: number;
+  amount: number | null;
   emissionDate: string;
   type: 'DEBIT' | 'CREDIT';
   description?: string;

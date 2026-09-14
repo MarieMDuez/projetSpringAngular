@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { PaymentMethodService } from './payment-method.service';
-import { PaymentMethod } from './payment-method.model';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { environment } from '../../../environments/environment';
+import { PaymentMethod } from './payment-method.model';
+import { PaymentMethodService } from './payment-method.service';
 
 describe('PaymentMethodService', () => {
   let service: PaymentMethodService;
@@ -28,7 +28,6 @@ describe('PaymentMethodService', () => {
   });
 
   afterEach(() => {
-    // Vérification de la bonne fermeture de tous les canaux HTTP ouverts
     httpMock.verify();
   });
 
@@ -43,16 +42,14 @@ describe('PaymentMethodService', () => {
     expect(req.request.method).toBe('GET');
     req.flush(mockMethods);
 
-    // Assertions sur les sélecteurs réactifs (computed signals)
     expect(service.allPaymentMethods()).toHaveLength(3);
-    expect(service.activePaymentMethods()).toHaveLength(2); // Filtre isActive === true
+    expect(service.activePaymentMethods()).toHaveLength(2);
   });
 
   it('should POST a new payment method and push it to the state array', () => {
     const newMethod: PaymentMethod = { label: 'Virement', isActive: true, position: 3 };
     const savedMethod: PaymentMethod = { id: 4, ...newMethod };
 
-    // Hydratation du State initial de test
     service['allPaymentMethodsSignal'].set(mockMethods);
 
     service.createPaymentMethod(newMethod).subscribe((result) => {
@@ -89,13 +86,12 @@ describe('PaymentMethodService', () => {
 
     const req = httpMock.expectOne(`${apiUrl}/1`);
     expect(req.request.method).toBe('DELETE');
-    // Simulation du comportement d'archivage (le moyen de paiement est lié à des transactions existantes)
     req.flush(false);
 
-    expect(service.allPaymentMethods()).toHaveLength(3); // La ligne reste présente
+    expect(service.allPaymentMethods()).toHaveLength(3);
     const method1 = service.allPaymentMethods().find((m) => m.id === 1);
-    expect(method1?.isActive).toBe(false); // Mais l'état passe inactif
-    expect(service.activePaymentMethods()).toHaveLength(1); // Le sélecteur réactif s'actualise
+    expect(method1?.isActive).toBe(false);
+    expect(service.activePaymentMethods()).toHaveLength(1);
   });
 
   it('should process hard-delete by evicting the item when API returns true', () => {
@@ -105,10 +101,9 @@ describe('PaymentMethodService', () => {
 
     const req = httpMock.expectOne(`${apiUrl}/1`);
     expect(req.request.method).toBe('DELETE');
-    // Le Back confirme la suppression physique de la BDD
     req.flush(true);
 
-    expect(service.allPaymentMethods()).toHaveLength(2); // L'élément est totalement éjecté
+    expect(service.allPaymentMethods()).toHaveLength(2);
     expect(service.allPaymentMethods().some((m) => m.id === 1)).toBe(false);
   });
 
@@ -126,7 +121,6 @@ describe('PaymentMethodService', () => {
     expect(req.request.method).toBe('POST');
     req.flush(reorderedCollection);
 
-    // Validation du remplacement global (indispensable pour l'UX du Drag and Drop)
     expect(service.allPaymentMethods()).toHaveLength(2);
     expect(service.allPaymentMethods()[0].id).toBe(2);
   });

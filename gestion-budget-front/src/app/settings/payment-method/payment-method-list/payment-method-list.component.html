@@ -1,19 +1,16 @@
 <div class="payment-method-list-container">
-  <!-- Formulaire d'ajout/modification imbriqué -->
   <app-payment-method-form></app-payment-method-form>
 
   <div class="data-list" cdkDropList (cdkDropListDropped)="onDrop($event)">
     @for (paymentMethod of paymentMethods(); track paymentMethod.id) {
     <div class="data-item" [class.item-disabled]="!paymentMethod.isActive" cdkDrag>
 
-      <!-- Poignée de glissement (Drag Handle) -->
       @if (paymentMethod.isActive) {
       <span class="drag-handle" cdkDragHandle>☰</span>
       } @else {
       <span class="drag-handle-placeholder"></span>
       }
 
-      <!-- Informations du Moyen de Paiement -->
       <div class="item-info">
         <span class="item-name">
           {{ paymentMethod.label }}
@@ -23,11 +20,14 @@
         </span>
       </div>
 
-      <!-- Actions sur le Moyen de Paiement -->
       <div class="item-actions">
         @if (paymentMethod.isActive) {
         <button type="button" class="btn-icon" (click)="onEdit(paymentMethod)" title="Modifier">✏️</button>
-        <button type="button" class="btn-icon" (click)="onDelete(paymentMethod)" title="Supprimer">🗑️</button>
+        <button type="button" class="btn-icon" [appOpenDialog]="deletePaymentMethodModal"
+          (click)="paymentMethodToDelete.set(paymentMethod)" title="Supprimer">🗑️</button>
+        } @else{
+        <button type="button" class="btn-icon" [appOpenDialog]="setActivePaymentMethodModal"
+          (click)="paymentMethodToSetActive.set(paymentMethod)" title="Réactiver">Réactiver</button>
         }
       </div>
 
@@ -37,3 +37,26 @@
     }
   </div>
 </div>
+
+<app-modal #deletePaymentMethodModal title="Suppression du moyen de paiement" options="accept-reject" type="danger"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmDeleteAction($event)">
+
+  @if (paymentMethodToDelete(); as paymentMethod) {
+  <p>
+    Êtes-vous sûr de vouloir supprimer le moyen de paiement <strong>{{ paymentMethod.label }}</strong> ?
+  </p>
+  <p class="text-danger">
+    Si des transactions sont rattachées à ce moyen de paiement, il sera archivé.
+  </p>
+  }
+</app-modal>
+
+<app-modal #setActivePaymentMethodModal title="Réactiver le moyen de paiement" options="accept-reject" type="warning"
+  confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmSetActiveAction($event)">
+
+  @if (paymentMethodToSetActive(); as paymentMethod) {
+  <p>
+    Êtes-vous sûr de vouloir réactiver le moyen de paiement <strong>{{ paymentMethod.label }}</strong> ?
+  </p>
+  }
+</app-modal>

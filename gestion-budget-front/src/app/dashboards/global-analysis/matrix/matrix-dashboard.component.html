@@ -1,0 +1,73 @@
+<div class="matrix-container">
+
+    @if (isLoading()) {
+    <div class="matrix-loader">
+        <div class="spinner"></div>
+        <p>Calcul de la matrice annuelle en cours...</p>
+    </div>
+    } @else if (matrixData(); as data) {
+    <div class="matrix-actions-header">
+        <button type="button" class="btn-matrix-toggle" (click)="onToggleAllMatrixRows()">
+            {{ isMatrixAllExpanded() ? '📂Tout replier' : '📂 Tout déplier' }}
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th class="sticky-col main-header">Moyens de paiement / Catégories</th>
+                    @for (month of availableMonths; track month.value) {
+                    <th class="month-header">{{ month.label }}</th>
+                    }
+                    <th class="total-header">Total Annuel</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (row of data.rows; track row.paymentMethodLabel) {
+                <tr class="row-payment-method" (click)="row.isExpanded = !row.isExpanded"
+                    title="Cliquez pour étendre ou réduire">
+                    <td class="sticky-col cell-label">
+                        <span class="toggle-icon">{{ row.isExpanded ? '▼' : '▶' }}</span>
+                        <strong>{{ row.paymentMethodLabel }}</strong>
+                    </td>
+                    @for (amount of row.monthlyAmounts; track $index) {
+                    <td class="cell-amount"><strong>{{ amount | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</strong></td>
+                    }
+                    <td class="cell-amount total-col"><strong>{{ row.totalYear | currency:'EUR':'symbol':'1.2-2':'fr-FR'
+                            }}</strong></td>
+                </tr>
+
+                @if (row.isExpanded) {
+                @for (catRow of row.categoryRows; track catRow.categoryLabel) {
+                <tr class="row-category">
+                    <td class="sticky-col cell-label pad-left">
+                        <span class="tree-fork">↳</span> {{ catRow.categoryLabel }}
+                    </td>
+                    @for (amount of catRow.monthlyAmounts; track $index) {
+                    <td class="cell-amount text-muted">{{ amount | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</td>
+                    }
+                    <td class="cell-amount total-col text-muted">{{ catRow.totalYear |
+                        currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</td>
+                </tr>
+                }
+                }
+                }
+
+                <tr class="row-grand-totals">
+                    <td class="sticky-col cell-label"><strong>Total Général</strong></td>
+                    @for (total of data.monthlyTotals; track $index) {
+                    <td class="cell-amount"><strong>{{ total | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</strong></td>
+                    }
+                    <td class="cell-amount total-col"><strong>{{ data.grandTotal |
+                            currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    } @else {
+    <div class="matrix-empty">
+        <p>Aucune donnée disponible pour les filtres sélectionnés.</p>
+    </div>
+    }
+</div>

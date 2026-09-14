@@ -3,6 +3,9 @@
     <div class="toast" [class.success]="toast.type === 'success'" [class.error]="toast.type === 'error'"
         [class.info]="toast.type === 'info'">
         {{ toast.message }}
+        <button type="button" class="btn-toast-close" (click)="toastService.remove(toast.id)" aria-label="Fermer">
+            ✕
+        </button>
     </div>
     }
 </div>

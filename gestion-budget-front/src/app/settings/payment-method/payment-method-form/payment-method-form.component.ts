@@ -1,8 +1,8 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PaymentMethodService } from '../payment-method.service';
-import { PaymentMethod } from '../payment-method.model';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { PaymentMethod } from '../payment-method.model';
+import { PaymentMethodService } from '../payment-method.service';
 
 @Component({
   selector: 'app-payment-method-form',
@@ -19,10 +19,12 @@ export class PaymentMethodFormComponent implements OnInit {
 
   protected paymentMethodForm!: FormGroup;
 
+  saveSuccess = output<number>();
+
   constructor() {
     effect(() => {
       const paymentMethod = this.paymentMethodService.editingPaymentMethod();
-      if (paymentMethod) this.onEdit(paymentMethod);
+      if (paymentMethod && this.paymentMethodForm) this.onEdit(paymentMethod);
     });
   }
   ngOnInit(): void {
@@ -85,8 +87,9 @@ export class PaymentMethodFormComponent implements OnInit {
     } else {
       paymentMethod.position = this.paymentMethods().length;
       this.paymentMethodService.createPaymentMethod(paymentMethod).subscribe({
-        next: () => {
+        next: (paymentMethodCreated) => {
           this.toastService.show('Moyen de paiement créé avec succès !', 'success');
+          this.saveSuccess.emit(paymentMethodCreated.id!);
           this.paymentMethodForm.reset({ label: '' });
         },
         error: (err) => {

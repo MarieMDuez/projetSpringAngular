@@ -74,4 +74,10 @@ public class AccountController {
         boolean isHardDeleted = accountService.deleteAccount(id);
         return ResponseEntity.ok(isHardDeleted);
     }
+    
+    @PutMapping("/{id}/set-active") 
+    public ResponseEntity<Account> setActiveAccount(@PathVariable Long id) {
+        Account updatedAccount = accountService.setActiveAccount(id);
+        return ResponseEntity.ok(updatedAccount); 
+    }
 }

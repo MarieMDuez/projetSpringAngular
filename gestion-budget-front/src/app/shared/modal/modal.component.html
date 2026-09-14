@@ -1,0 +1,30 @@
+<dialog #internalDialog (close)="onCancel()" [class]="'modal-container ' + type()">
+    <div class="modal-wrapper">
+
+        <div class="modal-header">
+            @if (options() !== 'empty') {
+            <h3>{{ title() }}</h3>
+            }
+            <button type="button" class="btn-close-x" (click)="onCancel()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <ng-content></ng-content>
+        </div>
+
+        @if (options() !== 'empty') {
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="onCancel()">
+                {{ cancelText() }}
+            </button>
+
+            @if (options() === 'accept-reject') {
+            <button type="button" class="btn-primary" (click)="onConfirm()">
+                {{ confirmText() }}
+            </button>
+            }
+        </div>
+        }
+
+    </div>
+</dialog>

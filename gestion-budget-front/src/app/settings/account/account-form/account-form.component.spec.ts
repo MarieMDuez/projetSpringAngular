@@ -1,17 +1,16 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AccountFormComponent } from './account-form.component';
-import { AccountService } from '../account.service';
 import { signal, WritableSignal } from '@angular/core';
-import { Account } from '../account.model';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Account } from '../account.model';
+import { AccountService } from '../account.service';
+import { AccountFormComponent } from './account-form.component';
 
 describe('AccountFormComponent', () => {
   let component: AccountFormComponent;
   let fixture: ComponentFixture<AccountFormComponent>;
 
-  // Isolation du State global via des stubs de signaux
   const mockAllAccounts = signal<Account[]>([]);
   const mockEditingAccount: WritableSignal<Account | null> = signal<Account | null>(null);
   const mockToastService: { show: Mock } = { show: vi.fn() };
@@ -49,14 +48,13 @@ describe('AccountFormComponent', () => {
 
   it('should validate form constraints (required fields and minLength)', () => {
     const form = component['accountForm'];
-    expect(form.valid).toBe(false); // Correction Vitest
+    expect(form.valid).toBe(false);
 
-    // Insertion d'un label trop court pour valider le validateur minLength
     form.patchValue({ label: 'Ab', initialBalance: 100 });
-    expect(form.valid).toBe(false); // Correction Vitest
+    expect(form.valid).toBe(false);
 
     form.patchValue({ label: 'Compte Courant' });
-    expect(form.valid).toBe(true); // Correction Vitest
+    expect(form.valid).toBe(true);
   });
 
   it('should react and pre-populate the form when editingAccount signal updates', async () => {
@@ -69,10 +67,8 @@ describe('AccountFormComponent', () => {
       position: 0,
     };
 
-    // Simulation de l'action utilisateur "Modifier" depuis la liste parente
     mockEditingAccount.set(targetAccount);
 
-    // Attente du cycle de l'effect() réactif d'Angular
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -99,7 +95,7 @@ describe('AccountFormComponent', () => {
     component['onSubmit']();
 
     expect(mockAccountService.createAccount).toHaveBeenCalled();
-    expect(component['accountForm'].get('label')?.value).toBe(''); // Formulaire réinitialisé
+    expect(component['accountForm'].get('label')?.value).toBe('');
     expect(mockToastService.show).toHaveBeenCalledWith('Compte créé avec succès !', 'success');
   });
 
@@ -120,8 +116,13 @@ describe('AccountFormComponent', () => {
     component['accountForm'].patchValue({ label: 'Compte Pro Modifié' });
     component['onSubmit']();
 
-    expect(mockAccountService.updateAccount).toHaveBeenCalledWith(99, expect.any(Object));
-    expect(mockEditingAccount()).toBeNull(); // Correction Vitest
+    expect(mockAccountService.updateAccount).toHaveBeenCalledWith(99, {
+      id: 99,
+      label: 'Compte Pro Modifié',
+      initialBalance: 1000,
+      isDefault: true,
+    });
+    expect(mockEditingAccount()).toBeNull();
   });
 
   it('should capture backend error and map it to the UI error signal', () => {
@@ -139,16 +140,11 @@ describe('AccountFormComponent', () => {
   });
 
   it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
-    // GIVEN : L'API renvoie un statut 409
     const errorResponse = { status: 409 };
     (mockAccountService.createAccount as Mock).mockReturnValue(throwError(() => errorResponse));
 
     component['accountForm'].patchValue({ label: 'livret A' });
-
-    // WHEN
     component['onSubmit']();
-
-    // THEN
     expect(mockToastService.show).toHaveBeenCalledWith(
       'Une erreur est survenue : ce nom de compte existe déjà',
       'error',
@@ -168,7 +164,7 @@ describe('AccountFormComponent', () => {
 
     component.onCancelEdit();
 
-    expect(mockEditingAccount()).toBeNull(); // Correction Vitest
-    expect(component['accountForm'].get('label')?.value).toBe('');
+    expect(mockEditingAccount()).toBeNull();
+    expect(component['accountForm'].get('label')?.value).toBeNull();
   });
 });

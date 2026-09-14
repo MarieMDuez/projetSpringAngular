@@ -8,14 +8,12 @@ import { Account } from './account.model';
   providedIn: 'root',
 })
 export class AccountService {
-  private http = inject(HttpClient); // 👈 Standard moderne d'entreprise (v16+)
+  private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/account`;
 
-  // Le State brut (privé)
   private allAccountsSignal = signal<Account[]>([]);
   public editingAccount = signal<Account | null>(null);
 
-  // Les Sélecteurs (publics et réactifs)
   public allAccounts = computed(() => this.allAccountsSignal());
   public activeAccounts = computed(() => this.allAccountsSignal().filter((a) => a.isActive));
 
@@ -29,7 +27,7 @@ export class AccountService {
     return this.http.post<Account>(this.apiUrl, account).pipe(
       tap((createdAccount) => {
         this.allAccountsSignal.update((current) => {
-          if (createdAccount.isActive) {
+          if (createdAccount.isDefault) {
             const cleanedList = current.map((a) => ({ ...a, isDefault: false }));
             return [...cleanedList, createdAccount];
           }
@@ -74,7 +72,6 @@ export class AccountService {
     return this.http.delete<boolean>(`${this.apiUrl}/${id}`).pipe(
       tap((isHardDelete) => {
         if (!isHardDelete) {
-          // Le service nettoie le State global en filtrant l'ID supprimé
           this.allAccountsSignal.update((current) =>
             current.map((account) =>
               account.id === id ? { ...account, isActive: false } : account,
@@ -85,6 +82,22 @@ export class AccountService {
             current.filter((account) => account.id !== id),
           );
         }
+      }),
+    );
+  }
+
+  setAccountActive(id: number, account: Account): Observable<Account> {
+    return this.http.put<Account>(`${this.apiUrl}/${id}/set-active`, account).pipe(
+      tap((result) => {
+        this.allAccountsSignal.update((current) =>
+          current.map((a) => {
+            if (a.id === id) {
+              return result;
+            } else {
+              return { ...a };
+            }
+          }),
+        );
       }),
     );
   }

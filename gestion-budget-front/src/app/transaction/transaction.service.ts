@@ -33,7 +33,6 @@ export class TransactionService {
           .find((acc) => acc.isDefault === true && acc.isActive);
 
         if (defaultAccount && defaultAccount.id) {
-          // 1. On active le filtre global sur ce compte par défaut
           this.selectedAccountIdFilter.set(defaultAccount.id);
           return this.dashboardService
             .loadBalances(defaultAccount.id)
@@ -49,7 +48,6 @@ export class TransactionService {
   public createTransaction(transaction: Transaction): Observable<unknown> {
     return this.http.post<Transaction>(this.apiUrl, transaction).pipe(
       tap((createdTx) => {
-        // On injecte la nouvelle transaction en haut du tableau réactivement
         this.allTransactionsSignal.update((currentList) => [createdTx, ...currentList]);
         this.filteredTransactionsSignal.update((currentList) => [createdTx, ...currentList]);
       }),
@@ -93,7 +91,6 @@ export class TransactionService {
   public deleteTransaction(id: number): Observable<unknown> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
-        // Le service nettoie le State global en filtrant l'ID supprimé
         this.allTransactionsSignal.update((current) => current.filter((a) => a.id !== id));
         this.filteredTransactionsSignal.update((current) => current.filter((tx) => tx.id !== id));
       }),
@@ -107,7 +104,6 @@ export class TransactionService {
     );
   }
 
-  /*Récupération des valeurs de récurrences présentent en base pour le filtre*/
   public uniqueRecurrences = signal<number[]>([]);
   public loadUniqueRecurrences(): Observable<number[]> {
     return this.http.get<number[]>(`${this.apiUrl}/recurrences/unique`).pipe(
@@ -120,6 +116,7 @@ export class TransactionService {
 
   public generateRecurrentTransactions(month: number, year: number): Observable<unknown> {
     const params = new HttpParams().set('month', month).set('year', year);
+
     return this.http
       .post<void>(`${this.apiUrl}/generate-recurrents`, null, { params })
       .pipe(concatMap(() => this.loadAllTransactions()));

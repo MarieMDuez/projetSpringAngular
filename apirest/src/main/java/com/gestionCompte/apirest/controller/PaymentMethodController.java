@@ -66,5 +66,11 @@ public class PaymentMethodController {
     	boolean isHardDeleted = paymentMethodService.deletePaymentMethod(id);
     	return ResponseEntity.ok(isHardDeleted); 
     }
+    
+    @PutMapping("/{id}/set-active") 
+    public ResponseEntity<PaymentMethod> setActivePaymentMethod(@PathVariable Long id) {
+    	PaymentMethod updatedPaymentMethod = paymentMethodService.setActivePaymentMethod(id);
+        return ResponseEntity.ok(updatedPaymentMethod); 
+    }
   
 }

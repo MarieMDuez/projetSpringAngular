@@ -1,17 +1,16 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CategoryFormComponent } from './category-form.component';
-import { CategoryService } from '../category.service';
 import { signal, WritableSignal } from '@angular/core';
-import { Category } from '../category.model';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Category } from '../category.model';
+import { CategoryService } from '../category.service';
+import { CategoryFormComponent } from './category-form.component';
 
 describe('CategoryFormComponent', () => {
   let component: CategoryFormComponent;
   let fixture: ComponentFixture<CategoryFormComponent>;
 
-  // Isolation du State global via des stubs de signaux
   const mockAllCategories = signal<Category[]>([]);
   const mockEditingCategory: WritableSignal<Category | null> = signal<Category | null>(null);
 
@@ -40,7 +39,7 @@ describe('CategoryFormComponent', () => {
 
     fixture = TestBed.createComponent(CategoryFormComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Déclenche ngOnInit et l'initialisation du formulaire réactif
+    fixture.detectChanges();
   });
 
   it('should create the component and initialize the reactive form', () => {
@@ -53,7 +52,6 @@ describe('CategoryFormComponent', () => {
     const form = component['categoryForm'];
     expect(form.valid).toBe(false);
 
-    // Insertion d'un libellé trop court
     form.patchValue({ label: 'Do' });
     expect(form.valid).toBe(false);
 
@@ -69,10 +67,8 @@ describe('CategoryFormComponent', () => {
       position: 2,
     };
 
-    // Simulation de l'action utilisateur "Modifier" depuis le tableau parent
     mockEditingCategory.set(targetCategory);
 
-    // Attente du cycle de propagation de l'effect()
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -81,7 +77,7 @@ describe('CategoryFormComponent', () => {
 
   it('should call createCategory API with append index and reset form upon submission', () => {
     const mockCreatedCategory: Category = { id: 10, label: 'Courses', isActive: true, position: 0 };
-    mockAllCategories.set([]); // Liste vide, la nouvelle doit prendre la position 0
+    mockAllCategories.set([]);
     (mockCategoryService.createCategory as Mock).mockReturnValue(of(mockCreatedCategory));
 
     component['categoryForm'].patchValue({ label: 'Courses' });
@@ -93,7 +89,7 @@ describe('CategoryFormComponent', () => {
         position: 0,
       }),
     );
-    expect(component['categoryForm'].get('label')?.value).toBe(''); // Reset vérifié
+    expect(component['categoryForm'].get('label')?.value).toBeNull();
     expect(mockToastService.show).toHaveBeenCalledWith('Catégorie créée avec succès !', 'success');
   });
 
@@ -107,8 +103,12 @@ describe('CategoryFormComponent', () => {
     component['categoryForm'].patchValue({ label: 'Loisirs & Cinéma' });
     component['onSubmit']();
 
-    expect(mockCategoryService.updateCategory).toHaveBeenCalledWith(42, expect.any(Object));
-    expect(mockEditingCategory()).toBeNull(); // Libération de l'état d'édition
+    expect(mockCategoryService.updateCategory).toHaveBeenCalledWith(42, {
+      label: 'Loisirs & Cinéma',
+      isActive: true,
+      position: undefined,
+    });
+    expect(mockEditingCategory()).toBeNull();
   });
 
   it('should capture backend failure during creation and map it to the UI error signal', () => {
@@ -125,16 +125,13 @@ describe('CategoryFormComponent', () => {
     );
   });
   it('should trigger duplicate name error toast upon 409 conflict during creation', () => {
-    // GIVEN : L'API renvoie un statut 409
     const errorResponse = { status: 409 };
     (mockCategoryService.createCategory as Mock).mockReturnValue(throwError(() => errorResponse));
 
     component['categoryForm'].patchValue({ label: 'Énergie' });
 
-    // WHEN
     component['onSubmit']();
 
-    // THEN
     expect(mockToastService.show).toHaveBeenCalledWith(
       'Une erreur est survenue : ce nom de catégorie existe déjà',
       'error',
@@ -148,6 +145,6 @@ describe('CategoryFormComponent', () => {
     component.onCancelEdit();
 
     expect(mockEditingCategory()).toBeNull();
-    expect(component['categoryForm'].get('label')?.value).toBe('');
+    expect(component['categoryForm'].get('label')?.value).toBeNull();
   });
 });

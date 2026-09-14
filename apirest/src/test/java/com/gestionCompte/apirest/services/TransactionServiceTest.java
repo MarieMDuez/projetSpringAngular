@@ -51,12 +51,10 @@ public class TransactionServiceTest {
         Page<Transaction> page = new PageImpl<>(List.of(tx));
         when(transactionRepository.findAll(ArgumentMatchers.<Specification<Transaction>>any(), isA(Pageable.class))).thenReturn(page);
 
-        // When
         List<Transaction> result = transactionService.getFilteredTransactions(
                 1L, null, null, null, null, null, new BigDecimal("100.00"), null, "DEBIT", true, null, 50
         );
 
-        // Then
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).getId()).isEqualTo(100L);
         assertThat(result.get(0).getType()).isEqualTo(TransactionType.DEBIT);
@@ -76,12 +74,10 @@ public class TransactionServiceTest {
         Page<Transaction> page = new PageImpl<>(List.of(tx));
         when(transactionRepository.findAll(ArgumentMatchers.<Specification<Transaction>>any(), isA(Pageable.class))).thenReturn(page);
 
-        // When
         List<Transaction> result = transactionService.getFilteredTransactions(
                 null, null, null, null, null, null, null, null, "DEBIT", true, null, 50
         );
 
-        // Then
         assertThat(result).isNotEmpty();
         assertThat(result.get(0).isChecked()).isTrue();
         verify(transactionRepository, times(1)).findAll(ArgumentMatchers.<Specification<Transaction>>any(), isA(Pageable.class));
@@ -89,7 +85,6 @@ public class TransactionServiceTest {
 
     @Test
     public void should_update_all_transaction_fields_accurately_when_updating() {
-        // Given
         Transaction existingTx = new Transaction();
         existingTx.setId(1L);
         existingTx.setDescription("Ancien libellé");
@@ -105,10 +100,8 @@ public class TransactionServiceTest {
         when(transactionRepository.findById(1L)).thenReturn(Optional.of(existingTx));
         when(transactionRepository.save(existingTx)).thenReturn(existingTx);
 
-        // When
         Transaction result = transactionService.updateTransaction(1L, updatedDetails);
 
-        // Then
         assertThat(result.getDescription()).isEqualTo("Nouveau libellé");
         assertThat(result.getAmount()).isEqualTo(new BigDecimal("120.50"));
         assertThat(result.getType()).isEqualTo(TransactionType.CREDIT);
@@ -119,14 +112,11 @@ public class TransactionServiceTest {
 
     @Test
     public void should_delete_transaction_successfully_if_id_exists() {
-        // Given
         when(transactionRepository.existsById(55L)).thenReturn(true);
         doNothing().when(transactionRepository).deleteById(55L);
 
-        // When
         transactionService.deleteTransaction(55L);
 
-        // Then
         verify(transactionRepository, times(1)).deleteById(55L);
     }
 
@@ -135,7 +125,6 @@ public class TransactionServiceTest {
         // Given
         when(transactionRepository.existsById(999L)).thenReturn(false);
 
-        // When & Then
         assertThatThrownBy(() -> transactionService.deleteTransaction(999L))
             .isInstanceOf(ResponseStatusException.class)
             .hasMessageContaining("Transaction not found with id");

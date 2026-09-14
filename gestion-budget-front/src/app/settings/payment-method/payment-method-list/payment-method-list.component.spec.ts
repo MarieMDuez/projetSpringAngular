@@ -12,10 +12,8 @@ describe('PaymentMethodListComponent', () => {
   let component: PaymentMethodListComponent;
   let fixture: ComponentFixture<PaymentMethodListComponent>;
 
-  // Isolation du State global de l'application via des stubs
   const mockAllPaymentMethods = signal<PaymentMethod[]>([]);
   const mockEditingPaymentMethod = signal<PaymentMethod | null>(null);
-  // Mock global de la fonction scrollIntoView pour éviter les plantages dans Vitest
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
   const mockToastService: { show: Mock } = { show: vi.fn() };
@@ -38,7 +36,6 @@ describe('PaymentMethodListComponent', () => {
         { provide: PaymentMethodService, useValue: mockPaymentMethodService },
         { provide: ToastService, useValue: mockToastService },
       ],
-      schemas: [NO_ERRORS_SCHEMA], // Évite la compilation intrusive du sous-composant formulaire
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaymentMethodListComponent);
@@ -65,8 +62,8 @@ describe('PaymentMethodListComponent', () => {
 
   it('should trigger deletePaymentMethod API once user confirms deletion dialog', () => {
     const targetMethod: PaymentMethod = { id: 14, label: 'Espèces', isActive: true, position: 1 };
-    vi.spyOn(window, 'confirm').mockReturnValue(true); // Clic simulé sur "OK"
-    (mockPaymentMethodService.deletePaymentMethod as Mock).mockReturnValue(of(true)); // Hard delete confirmé par l'API
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    (mockPaymentMethodService.deletePaymentMethod as Mock).mockReturnValue(of(true));
 
     component['onDelete'](targetMethod);
 
@@ -79,11 +76,11 @@ describe('PaymentMethodListComponent', () => {
 
   it('should interrupt deletion routine and abort API request if user cancels confirm window', () => {
     const targetMethod: PaymentMethod = { id: 14, label: 'Espèces', isActive: true, position: 1 };
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false); // Clic simulé sur "Annuler"
+    component['paymentMethodToDelete'].set(targetMethod);
 
-    component['onDelete'](targetMethod);
+    component['onConfirmDeleteAction']('cancel');
 
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(component['paymentMethodToDelete']()).toBeNull();
     expect(mockPaymentMethodService.deletePaymentMethod).not.toHaveBeenCalled();
   });
 
@@ -94,7 +91,6 @@ describe('PaymentMethodListComponent', () => {
 
     (mockPaymentMethodService.saveAll as Mock).mockReturnValue(of([methodB, methodA]));
 
-    // Création du faux conteneur d'événement permutant l'index 0 vers l'index 1
     const mockDragDropEvent = {
       previousIndex: 0,
       currentIndex: 1,
@@ -102,7 +98,6 @@ describe('PaymentMethodListComponent', () => {
 
     component.onDrop(mockDragDropEvent);
 
-    // Contrôle du recalcul de l'ordonnancement par indexation linéaire
     expect(mockPaymentMethodService.saveAll).toHaveBeenCalledWith([
       expect.objectContaining({ id: 22, position: 0 }),
       expect.objectContaining({ id: 11, position: 1 }),

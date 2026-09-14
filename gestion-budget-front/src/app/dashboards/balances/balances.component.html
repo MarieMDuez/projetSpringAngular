@@ -14,16 +14,13 @@
 
     @if (currentBalances(); as balances) {
     <div class="balances-summary">
-        <!-- Carte Solde Réel (Vert) -->
         <div class="balance-card card-real">
             <span class="balance-title">Solde Réel (Pointé)</span>
             <span class="balance-amount">{{ balances.currentBalance | number:'1.2-2' }} €</span>
         </div>
-
-        <!-- Carte Solde Prévisionnel (Bleu Indigo à la place du orange) -->
         <div class="balance-card card-projected">
             <span class="balance-title">Solde Prévisionnel</span>
-            <span class="balance-amount">{{ balances.provisionalBalance | number:'1.2-2' }} €</span>
+            <span class="balance-amount">{{ balances.projectedBalance | number:'1.2-2' }} €</span>
         </div>
     </div>
     }
