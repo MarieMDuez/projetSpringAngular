@@ -12,6 +12,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import com.gestionCompte.apirest.model.Account;
+import com.gestionCompte.apirest.model.AccountType;
 import com.gestionCompte.apirest.model.Category;
 import com.gestionCompte.apirest.model.PaymentMethod;
 import com.gestionCompte.apirest.model.Transaction;
@@ -28,9 +29,10 @@ public class TransactionRepositoryTest {
     private TestEntityManager entityManager;
 
     @Test
-    public void should_return_true_when_transactions_exist_by_related_ids() {
+    void should_return_true_when_transactions_exist_by_related_ids() {
         Account account = new Account();
         account.setLabel("Compte Courant Test");
+        account.setType(AccountType.COURANT);
         account.setInitialBalance(new BigDecimal("1000.00"));
         account.setActive(true);
         account.setDefault(false);
@@ -70,7 +72,7 @@ public class TransactionRepositoryTest {
     }
 
     @Test
-    public void should_return_false_when_no_transactions_are_linked_to_ids() {
+    void should_return_false_when_no_transactions_are_linked_to_ids() {
         boolean accountExists = transactionRepository.existsByAccountId(999L);
         assertThat(accountExists).isFalse();
     }

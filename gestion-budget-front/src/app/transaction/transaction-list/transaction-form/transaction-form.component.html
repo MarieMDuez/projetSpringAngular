@@ -1,52 +1,56 @@
-<div class="quick-add-container" [class.edit-mode]="transactionService.transactionToEdit()?.id" id="editForm">
+<div class="quick-add-container" [class.edit-mode]="transactionService.transactionToEdit()?.id"
+    id="editFormTransaction">
 
     <h3 class="section-title-tracker">
-        {{ transactionService.transactionToEdit()?.id ? 'Modifier la transaction' : 'Ajouter une transaction' }}
+        {{ transactionService.transactionToEdit()?.id ? 'Enregistrer' : 'Ajouter' }}
     </h3>
 
     <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="form-grid-inline">
 
         <div class="form-group-tracker">
             <label for="emissionDate">Date</label>
-            <input id="emissionDate" type="date" formControlName="emissionDate"
-                [class.input-error]="transactionForm.get('emissionDate')?.touched && transactionForm.get('emissionDate')?.invalid">
+            <div class="custom-date-container">
+                <input id="emissionDate" type="date" formControlName="emissionDate"
+                    [class.input-error]="transactionForm.get('emissionDate')?.touched && transactionForm.get('emissionDate')?.invalid">
+            </div>
         </div>
 
         <div class="form-group-tracker">
             <label for="accountId">Compte</label>
-            <select id="accountId" formControlName="accountId" appSelectLoop>
+            <select id="accountId" formControlName="accountId" (change)="onChangeSelect($event, 'account')"
+                appSelectLoop>
                 <option value="">— Choisir —</option>
+                <option value="add">+ Créer nouveau compte</option>
                 @for (account of accounts(); track account.id) {
                 <option [value]="account.id">{{ account.label }} {{ !account.isActive ? ' (Désactivé)' : '' }}</option>
                 }
             </select>
-            <button [appOpenDialog]="addAccount" type="button" class="btn-primary btn-plus">
-                Ajouter
-            </button>
+
         </div>
         <div class="form-group-tracker">
             <label for="paymentMethodId">Moyen de Paiement</label>
-            <select id="paymentMethodId" formControlName="paymentMethodId" appSelectLoop>
+            <select id="paymentMethodId" formControlName="paymentMethodId"
+                (change)="onChangeSelect($event, 'paymentMethod')" appSelectLoop>
                 <option value="">— Choisir —</option>
+                <option value="add">+ Créer nouveau moyen de paiement</option>
                 @for (paymentMethod of paymentMethods(); track paymentMethod.id) {
                 <option [value]="paymentMethod.id">{{ paymentMethod.label }}</option>
                 }
             </select>
-            <button [appOpenDialog]="addPaymentMethod" type="button" class="btn-primary btn-plus">
-                Ajouter
-            </button>
+
         </div>
         <div class="form-group-tracker">
             <label for="categoryId">Catégorie</label>
-            <select id="categoryId" formControlName="categoryId" appSelectLoop>
+            <select id="categoryId" formControlName="categoryId" (change)="onChangeSelect($event, 'category')"
+                appSelectLoop>
                 <option value="">— Choisir —</option>
+                <option value="add">+ Créer nouvelle catégorie</option>
+
                 @for (categorie of categories(); track categorie.id) {
                 <option [value]="categorie.id">{{ categorie.label }}</option>
                 }
             </select>
-            <button [appOpenDialog]="addCategory" type="button" class="btn-primary btn-plus">
-                Ajouter
-            </button>
+
         </div>
         <div class="form-group-tracker wide-field">
             <label for="description">Description</label>
@@ -90,6 +94,9 @@
         <div class="tool-generate-block">
             <span class="tool-label">Générer les transactions récurrentes pour :</span>
             <div class="tool-inputs">
+
+                <!-- 💡 Vrai label connecté pour le Mois (masqué visuellement) -->
+                <label for="gen-month" class="visually-hidden">Mois de génération des récurrences</label>
                 <select appSelectLoop id="gen-month" #genMonth>
                     @for (m of availableMonths; track m.value) {
                     <option [value]="m.value" [selected]="m.label === defaultMonth">
@@ -97,8 +104,12 @@
                     </option>
                     }
                 </select>
+
+                <!-- 💡 Vrai label connecté pour l'Année (masqué visuellement) -->
+                <label for="gen-year" class="visually-hidden">Année de génération des récurrences</label>
                 <input type="number" id="gen-year" placeholder="Année" #genYear [value]="defaultYear"
                     class="input-gen-year" />
+
                 <button type="button" class="btn-primary btn-generate-submit"
                     [disabled]="!genYear.value || !genMonth.value"
                     (click)="generateRecurrent(Number(genMonth.value), Number(genYear.value))">
@@ -106,10 +117,11 @@
                 </button>
             </div>
         </div>
-
     </div>
 
+
 </div>
+
 
 <app-modal #addPaymentMethod options="empty">
     <app-payment-method-form

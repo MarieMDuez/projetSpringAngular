@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DashboardService } from '../../dashboard.service';
-import { summaryDto } from './summary.model';
+import { Summary } from './summary.model';
 
 @Component({
   selector: 'app-summary',
@@ -11,7 +11,7 @@ import { summaryDto } from './summary.model';
 })
 export class SummaryComponent implements OnInit {
   protected dashboardService = inject(DashboardService);
-  summaryData = signal<summaryDto | null>(null);
+  summaryData = signal<Summary | null>(null);
   isLoading = signal<boolean>(true);
 
   ngOnInit(): void {

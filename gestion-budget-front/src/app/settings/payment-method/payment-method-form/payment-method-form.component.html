@@ -6,7 +6,7 @@
         <label for="paymentMethodLabel">Nom du moyen de paiement</label>
         <input id="paymentMethodLabel" type="text" formControlName="label"
             placeholder="Ex: Virement, Carte Bancaire, Espèces..." autofocus>
-        @if (paymentMethodForm.get('label')?.touched && paymentMethodForm.get('label')?.invalid) {
+        @if (paymentMethodForm.get('label')?.dirty && paymentMethodForm.get('label')?.invalid) {
         <small class="error-text">Obligatoire (3 car. min)</small>
         }
     </div>

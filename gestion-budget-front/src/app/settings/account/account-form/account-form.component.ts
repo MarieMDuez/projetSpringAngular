@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, effect, inject, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
-import { Account } from '../account.model';
+import { Account, AccountType, AccountTypeLabels } from '../account.model';
 import { AccountService } from '../account.service';
 
 @Component({
@@ -13,13 +13,26 @@ import { AccountService } from '../account.service';
 })
 export class AccountFormComponent implements OnInit {
   protected accountForm!: FormGroup;
-  private myFormBuilder = inject(FormBuilder);
+  private readonly myFormBuilder = inject(FormBuilder);
   protected accountService = inject(AccountService);
 
-  private toastService = inject(ToastService);
+  private readonly toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
   saveSuccess = output<number>();
+
+  protected readonly accountTypeLabels = AccountTypeLabels;
+
+  protected readonly accountTypes = Object.values(AccountType);
+
+  protected readonly accountVide = {
+    label: null,
+    type: AccountType.COURANT,
+    initialBalance: 0,
+    isDefault: false,
+    isActive: true,
+    position: null,
+  };
 
   constructor() {
     effect(() => {
@@ -33,33 +46,34 @@ export class AccountFormComponent implements OnInit {
 
   private initForm() {
     this.accountForm = this.myFormBuilder.group({
-      label: ['', [Validators.required, Validators.minLength(3)]],
+      label: [
+        '',
+        {
+          validators: [Validators.required, Validators.minLength(3)],
+        },
+      ],
+      type: [AccountType.COURANT, [Validators.required]],
       initialBalance: [0, [Validators.required]],
       isDefault: [false],
+      isActive: true,
+      position: null,
     });
   }
+
   protected onSubmit(): void {
     if (this.accountForm.invalid) {
       return;
     }
 
-    const formData = this.accountForm.value;
+    const formData = this.accountForm.getRawValue();
     const currentId = this.accountService.editingAccount()?.id;
     const account: Account = {
       label: formData.label,
+      type: formData.type,
       initialBalance: formData.initialBalance,
       isDefault: formData.isDefault,
       isActive: formData.isActive,
       position: formData.position,
-    };
-
-    const accountVide = {
-      id: undefined,
-      label: null,
-      initialBalance: 0,
-      isDefault: false,
-      isActive: true,
-      position: undefined,
     };
     if (currentId != null) {
       account.id = currentId;
@@ -67,7 +81,7 @@ export class AccountFormComponent implements OnInit {
         next: () => {
           this.toastService.show('Compte modifié avec succès !', 'success');
           this.accountService.editingAccount.set(null);
-          this.accountForm.reset(accountVide);
+          this.accountForm.reset(this.accountVide);
         },
         error: (err: HttpErrorResponse) => {
           if (err.status == 409) {
@@ -86,6 +100,7 @@ export class AccountFormComponent implements OnInit {
     } else {
       const newAccount: Account = {
         label: formData.label,
+        type: formData.type,
         initialBalance: formData.initialBalance,
         isActive: true,
         isDefault: formData.isDefault,
@@ -99,6 +114,7 @@ export class AccountFormComponent implements OnInit {
 
           this.accountForm.reset({
             label: '',
+            type: AccountType.COURANT,
             initialBalance: 0,
             isDefault: false,
             isActive: true,
@@ -122,26 +138,20 @@ export class AccountFormComponent implements OnInit {
     }
   }
   protected onEdit(account: Account): void {
+    this.accountForm.markAsUntouched();
     if (account.id != null) this.accountService.editingAccount.set(account);
-
     this.accountForm.patchValue({
       label: account.label,
+      type: account.type,
       isDefault: account.isDefault,
       isActive: account.isActive,
       initialBalance: account.initialBalance,
+      position: account.position,
     });
   }
 
   public onCancelEdit(): void {
-    const accountVide = {
-      id: null,
-      label: null,
-      initialBalance: 0,
-      isDefault: false,
-      isActive: true,
-      position: null,
-    };
     this.accountService.editingAccount.set(null);
-    this.accountForm.reset(accountVide);
+    this.accountForm.reset(this.accountVide);
   }
 }

@@ -1,7 +1,7 @@
-import { balanceDto } from '../../balances/balance.model';
+import { Balance } from '../../balances/balance.model';
 
-export interface summaryDto {
+export interface Summary {
   currentGlobalBalance: number;
   projectedGlobalBalance: number;
-  accountsDetails: balanceDto[];
+  accountsDetails: Balance[];
 }

@@ -13,7 +13,7 @@
 
   .btn-close-x {
     position: absolute;
-    right:2px;
+    right: 2px;
     background: none;
     border: none;
     font-size: 1.5rem;
@@ -24,7 +24,7 @@
     transition: color 0.2s;
 
     &:hover {
-      color: var(--text-danger, #dc3545); 
+      color: var(--text-danger, #dc3545);
     }
   }
 }
@@ -37,6 +37,6 @@
   border-top: 1px solid var(--border-color, #e0e0e0);
 
   &.close-only {
-    justify-content: center; 
+    justify-content: center;
   }
 }

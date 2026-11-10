@@ -1,13 +1,17 @@
 <div class="cockpit-container">
 
     <header class="cockpit-filter-area">
-        <div class="section-trigger">
+        <div class="section-header">
             <h2 class="section-title">Filtres</h2>
+            <span><button type="button" class="btn-matrix-toggle" (click)="toggleHideFilter()">
+                    {{ isFilterHide() ? 'Afficher les filtres' : 'Cacher les filtres' }}
+                </button></span>
         </div>
+        @if(!isFilterHide()){
         <div class="filter-form">
             <div class="filter-group">
                 <label for="filter-account">Compte</label>
-                <select id="filter-account" [(ngModel)]="transactionService.selectedAccountIdFilter"
+                <select id="filter-account" [ngModel]="dashboardService.selectedAccountId"
                     (ngModelChange)="onAccountChange($event)">
                     <option [ngValue]="null">— Tous les comptes —</option>
                     @for (acc of accounts(); track acc.id) {
@@ -15,7 +19,20 @@
                     }
                 </select>
             </div>
+            <div class="filter-group">
+                <label for="accountTypeFilter">Type de compte</label>
 
+                <select id="accountTypeFilter" [ngModel]="dashboardService.accountType()"
+                    (ngModelChange)="onTypeChange($event)">
+                    <option value="null">Tous les types</option>
+
+                    @for (type of accountTypes; track type) {
+                    <option [value]="type">
+                        {{ accountTypeLabels[type] }}
+                    </option>
+                    }
+                </select>
+            </div>
             <div class="filter-group">
                 <label for="filter-month">Mois</label>
                 <select id="filter-month" (change)="onMonthChange($event)">
@@ -49,7 +66,7 @@
         <div class="arriane">
             <nav class="cockpit-nav-anchors">
                 <a [routerLink]="[]" fragment="balance-section" class="anchor-link">Soldes</a>
-                <a [routerLink]="[]" fragment="analytics-section" class="anchor-link">Annalyse mensuelle</a>
+                <a [routerLink]="[]" fragment="analytics-section" class="anchor-link">Analyse mensuelle</a>
                 <a [routerLink]="[]" fragment="matrix-monthly-section" class="anchor-link">Analyse par semaine</a>
                 <a [routerLink]="[]" fragment="evolution-section" class="anchor-link">Évolution annuelle</a>
                 <a [routerLink]="[]" fragment="matrix-section" class="anchor-link">Tableau croisé sur l'année</a>
@@ -60,29 +77,45 @@
             </button>
 
         </div>
+        }
     </header>
 
 
 
     <main class="cockpit-main-content">
 
-        <section id="balance-section" class="cockpit-section-block">
-            <div class="section-trigger" (click)="toggleSection('balance')" role="button" tabindex="0">
-                <span class="section-chevron">{{ isBalanceExpanded() ? '▼' : '►' }}</span>
-                <h2 class="section-title">Vue d'ensemble des Soldes</h2>
-            </div>
-            @if (isBalanceExpanded()) {
-            <div class="section-content-wrapper">
-                <app-balances></app-balances>
-            </div>
-            }
-        </section>
+        <article class="balances">
+            <section id="balance-section" class="cockpit-section-block">
+                <button type="button" class="section-trigger section-trigger-btn" (click)="toggleSection('balance')">
+                    <span class="section-chevron">{{ isBalanceExpanded() ? '▼' : '►' }}</span>
+                    <h2 class="section-title">Soldes actuels</h2>
+                </button>
 
+                @if (isBalanceExpanded()) {
+                <div class="section-content-wrapper">
+                    <app-balances [showAccount]="false"></app-balances>
+                </div>
+                }
+            </section>
+
+            <section id="start-end-balances-section" class="cockpit-section-block">
+                <button type="button" class="section-trigger section-trigger-btn"
+                    (click)="toggleSection('start-end-balances')">
+                    <span class="section-chevron">{{ isStartEndBalancesExpanded() ? '▼' : '►' }}</span>
+                    <h2 class="section-title">Soldes sur la période</h2>
+                </button>
+                @if (isStartEndBalancesExpanded()) {
+                <div class="section-content-wrapper">
+                    <app-start-end-balances></app-start-end-balances>
+                </div>
+                }
+            </section>
+        </article>
         <section id="analytics-section" class="cockpit-section-block">
-            <div class="section-trigger" (click)="toggleSection('analytics')" role="button" tabindex="0">
+            <button type="button" class="section-trigger section-trigger-btn" (click)="toggleSection('analytics')">
                 <span class="section-chevron">{{ isAnalyticsExpanded() ? '▼' : '►' }}</span>
                 <h2 class="section-title">Répartition & Analyse mensuelle</h2>
-            </div>
+            </button>
             @if (isAnalyticsExpanded()) {
             <div class="section-content-wrapper">
                 <app-analytics></app-analytics>
@@ -91,10 +124,10 @@
         </section>
 
         <section id="matrix-monthly-section" class="cockpit-section-block">
-            <div class="section-trigger" (click)="toggleSection('matrix-monthly')" role="button" tabindex="1">
+            <button type="button" class="section-trigger section-trigger-btn" (click)="toggleSection('matrix-monthly')">
                 <span class="section-chevron">{{ isMatrixMonthlyExpanded() ? '▼' : '►' }}</span>
                 <h2 class="section-title">Répartition par semaine</h2>
-            </div>
+            </button>
             @if (isMatrixMonthlyExpanded()) {
             <div class="section-content-wrapper">
                 <app-matrix-monthly></app-matrix-monthly>
@@ -103,10 +136,10 @@
         </section>
 
         <section id="evolution-section" class="cockpit-section-block">
-            <div class="section-trigger" (click)="toggleSection('evolution')" role="button" tabindex="2">
+            <button type="button" class="section-trigger section-trigger-btn" (click)="toggleSection('evolution')">
                 <span class="section-chevron">{{ isEvolutionExpanded() ? '▼' : '►' }}</span>
                 <h2 class="section-title">Évolution Annuelle </h2>
-            </div>
+            </button>
             @if (isEvolutionExpanded()) {
             <div class="section-content-wrapper">
                 <app-analytics-evolution></app-analytics-evolution>
@@ -115,10 +148,10 @@
         </section>
 
         <section id="matrix-section" class="cockpit-section-block">
-            <div class="section-trigger" (click)="toggleSection('matrix')" role="button" tabindex="3">
+            <button type="button" class="section-trigger section-trigger-btn" (click)="toggleSection('matrix')">
                 <span class="section-chevron">{{ isMatrixExpanded() ? '▼' : '►' }}</span>
                 <h2 class="section-title">Tableau croisé annuel</h2>
-            </div>
+            </button>
             @if (isMatrixExpanded()) {
             <div class="section-content-wrapper">
                 <app-matrix-dashboard></app-matrix-dashboard>

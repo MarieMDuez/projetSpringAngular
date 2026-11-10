@@ -2,8 +2,9 @@ package com.gestionCompte.apirest.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
-import lombok.Data;
+
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -16,9 +17,9 @@ public class AnalyticsEvolutionDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class MonthDataDto {
-        private int month;           
-        private BigDecimal debits;   
-        private BigDecimal credits;  
+        private int month;
+        private BigDecimal debits;
+        private BigDecimal credits;
     }
 
     @Data
@@ -28,7 +29,7 @@ public class AnalyticsEvolutionDto {
         private String categoryLabel;
         private List<MonthDataDto> monthlyDetails;
     }
-    
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

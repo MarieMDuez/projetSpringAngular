@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApexOptions, NgApexchartsModule } from 'ng-apexcharts';
 import { TransactionService } from '../../../transaction/transaction.service';
@@ -12,7 +12,7 @@ import { AnalyticsDashboardDto } from './analytics-dashboard.model';
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
 })
-export class AnalyticsDashboardComponent implements OnInit {
+export class AnalyticsDashboardComponent {
   protected dashboardService = inject(DashboardService);
   protected transactionService = inject(TransactionService);
 
@@ -124,7 +124,7 @@ export class AnalyticsDashboardComponent implements OnInit {
                 fontFamily: 'Helvetica, Arial, sans-serif',
                 fontWeight: 700,
                 color: '#0f172a',
-                formatter: (val: string) => this.formatCurrency(parseFloat(val)),
+                formatter: (val: string) => this.formatCurrency(Number.parseFloat(val)),
               },
               total: {
                 show: true,
@@ -177,25 +177,13 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const account = this.transactionService.selectedAccountIdFilter();
-      const month = this.dashboardService.selectedMonth();
-      const year = this.dashboardService.selectedYear();
-      const isChecked = this.dashboardService.isCheckedFilter();
-
-      this.loadDashboardData(account, month, year, isChecked);
+      this.loadDashboardData();
     });
   }
 
-  ngOnInit(): void {}
-
-  private loadDashboardData(
-    accountId: number | null,
-    month: number | null,
-    year: number,
-    isChecked: boolean | null,
-  ): void {
+  private loadDashboardData(): void {
     this.isLoading.set(true);
-    this.dashboardService.getAnalytics(accountId, month, year, isChecked).subscribe({
+    this.dashboardService.getAnalytics().subscribe({
       next: (data) => {
         this.analyticsData.set(data);
         this.isLoading.set(false);

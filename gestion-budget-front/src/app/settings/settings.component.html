@@ -1,7 +1,8 @@
 <div class="settings-container">
   <header class="settings-header">
     <h2 class="settings-title">Configurations</h2>
-    <p class="settings-subtitle">Gérez vos structures de comptes, catégories de dépenses et moyens de paiement.</p>
+    <p class="settings-subtitle">Gérez vos structures de comptes, catégories de dépenses, moyens de paiement et
+      pararamétrez l'automatisation de vos budget prévisionnels.</p>
   </header>
 
   <div class="dashboard-grid">
@@ -19,6 +20,12 @@
     <section class="card-container">
       <h3 class="card-title">Catégories</h3>
       <app-category-list></app-category-list>
+    </section>
+
+    <section class="card-container">
+      <h3 class="card-title">Mapping pour les budgets prévisionnels</h3>
+      <p>Configurer ces champs permettra de pré-remplir directement les budgets prévisionnels générés</p>
+      <app-projected-budget-settings-list></app-projected-budget-settings-list>
     </section>
 
   </div>

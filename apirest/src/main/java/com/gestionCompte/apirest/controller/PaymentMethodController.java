@@ -21,56 +21,56 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payment_methods")
-@CrossOrigin(origins = "http://localhost:4200") 
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class PaymentMethodController {
 	private final PaymentMethodService paymentMethodService;
-	
-	@GetMapping 
+
+	@GetMapping
     public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
-        List<PaymentMethod> PaymentMethods = paymentMethodService.getAllPaymentMethods();
-        return ResponseEntity.ok(PaymentMethods); 
+        List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods();
+        return ResponseEntity.ok(paymentMethods);
     }
-	
-	  @GetMapping("/activ") 
+
+	  @GetMapping("/activ")
 	    public ResponseEntity<List<PaymentMethod>> getAllActivPaymentMethods() {
-	        List<PaymentMethod> paymentMethods = paymentMethodService.getAllActivPaymentMethods();
+	        List<PaymentMethod> paymentMethods = paymentMethodService.getAllActivePaymentMethods();
 	        return ResponseEntity.ok(paymentMethods);
 	    }
 
-    @GetMapping("/{id}") 
+    @GetMapping("/{id}")
     public ResponseEntity<PaymentMethod> getPaymentMethodById(@PathVariable Long id) {
-        PaymentMethod PaymentMethod = paymentMethodService.getPaymentMethodById(id);
-        return ResponseEntity.ok(PaymentMethod);
+        PaymentMethod paymentMethod = paymentMethodService.getPaymentMethodById(id);
+        return ResponseEntity.ok(paymentMethod);
     }
-    @PostMapping 
-    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod PaymentMethod) {
-        PaymentMethod createdPaymentMethod = paymentMethodService.createPaymentMethod(PaymentMethod);
-        return new ResponseEntity<>(createdPaymentMethod, HttpStatus.CREATED); 
+    @PostMapping
+    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
+        PaymentMethod createdPaymentMethod = paymentMethodService.createPaymentMethod(paymentMethod);
+        return new ResponseEntity<>(createdPaymentMethod, HttpStatus.CREATED);
     }
-    
+
     @PostMapping("/saveAll")
     public ResponseEntity<List<PaymentMethod>> saveAll(@RequestBody List<PaymentMethod> paymentMethods) {
         List<PaymentMethod> paymentMethodsSaved = paymentMethodService.saveAll(paymentMethods);
         return ResponseEntity.ok(paymentMethodsSaved);
     }
-    
-    @PutMapping("/{id}") 
-    public ResponseEntity<PaymentMethod> updatePaymentMethod(@PathVariable Long id, @RequestBody PaymentMethod PaymentMethodDetails) {
-        PaymentMethod updatedPaymentMethod = paymentMethodService.updatePaymentMethod(id, PaymentMethodDetails);
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PaymentMethod> updatePaymentMethod(@PathVariable Long id, @RequestBody PaymentMethod paymentMethodDetails) {
+        PaymentMethod updatedPaymentMethod = paymentMethodService.updatePaymentMethod(id, paymentMethodDetails);
         return ResponseEntity.ok(updatedPaymentMethod);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deletePaymentMethod(@PathVariable Long id) {
     	boolean isHardDeleted = paymentMethodService.deletePaymentMethod(id);
-    	return ResponseEntity.ok(isHardDeleted); 
+    	return ResponseEntity.ok(isHardDeleted);
     }
-    
-    @PutMapping("/{id}/set-active") 
+
+    @PutMapping("/{id}/set-active")
     public ResponseEntity<PaymentMethod> setActivePaymentMethod(@PathVariable Long id) {
     	PaymentMethod updatedPaymentMethod = paymentMethodService.setActivePaymentMethod(id);
-        return ResponseEntity.ok(updatedPaymentMethod); 
+        return ResponseEntity.ok(updatedPaymentMethod);
     }
-  
+
 }

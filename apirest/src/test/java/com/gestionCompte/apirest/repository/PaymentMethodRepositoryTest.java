@@ -9,6 +9,8 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import com.gestionCompte.apirest.model.PaymentMethod;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 
 @DataJpaTest
@@ -21,7 +23,7 @@ public class PaymentMethodRepositoryTest {
     private TestEntityManager entityManager;
     
     @Test
-    public void should_return_only_active_categories() {
+    void should_return_only_active_categories() {
         String uniqueLabelActive = "PaymentMethod Test Active Unique";
         String uniqueLabelInactive = "PaymentMethod Test Inactive Unique";
 
@@ -47,8 +49,7 @@ public class PaymentMethodRepositoryTest {
             if (paymentMethod.getLabel().equals(uniqueLabelInactive)) inactiveFound = true;
         }
 
-        if (!activeFound || inactiveFound) {
-            throw new AssertionError("Échec : Le filtrage par statut actif ne fonctionne pas correctement !");
-        }
+        assertTrue(activeFound, "Le moyen de paiement actif aurait dû être trouvé");
+        assertFalse(inactiveFound, "Le moyen de paiement inactive n'aurait pas dû être retourné");
     }
 }

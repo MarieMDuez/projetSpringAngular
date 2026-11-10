@@ -1,116 +1,156 @@
-import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { of } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { TransactionService } from '../transaction.service';
 import { DashboardService } from '../../dashboards/dashboard.service';
 import { AccountService } from '../../settings/account/account.service';
 import { CategoryService } from '../../settings/category/category.service';
 import { PaymentMethodService } from '../../settings/payment-method/payment-method.service';
-import { TransactionService } from '../transaction.service';
+import { signal, WritableSignal, Directive } from '@angular/core';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of } from 'rxjs';
 import { TransactionsFilters } from './transactions-filters';
 
-describe('TransactionFiltersComponent', () => {
+// Stub de la directive présente dans le HTML
+@Directive({
+  selector: '[appSelectLoop]',
+  standalone: true,
+})
+class StubSelectLoopDirective {}
+
+describe('TransactionsFilters', () => {
   let component: TransactionsFilters;
   let fixture: ComponentFixture<TransactionsFilters>;
+  let mockTransactionService: any;
+  let mockDashboardService: any;
+  let mockAccountService: any;
+  let mockCategoryService: any;
+  let mockPaymentMethodService: any;
 
-  let mockTransactionService: Partial<TransactionService>;
-  let mockAccountService: Partial<AccountService>;
-  let mockDashboardService: Partial<DashboardService>;
+  let selectedAccountIdSignal: WritableSignal<number | null>;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    selectedAccountIdSignal = signal<number | null>(1);
 
     mockTransactionService = {
-      selectedAccountIdFilter: signal<number | null>(null),
-      recurrenceFilter: signal<number | null>(null),
-      uniqueRecurrences: signal<number[]>([]),
-      loadFilteredTransactions: vi.fn().mockReturnValue(of([])),
+      uniqueRecurrences: signal([0, 1, 3]),
       loadUniqueRecurrences: vi.fn().mockReturnValue(of([])),
-      generateRecurrentTransactions: vi.fn().mockReturnValue(of(void 0)),
+      loadFilteredTransactions: vi.fn().mockReturnValue(of([])),
     };
 
     mockDashboardService = {
-      balances: signal({
-        id: null,
-        label: 'Vue Globale',
-        initialBalance: 1000,
-        currentBalance: 800,
-        projectedBalance: 1100,
-      }),
+      selectedAccountId: selectedAccountIdSignal,
       loadBalances: vi.fn().mockReturnValue(of({})),
     };
 
-    mockAccountService = { allAccounts: signal([]) };
+    mockAccountService = { allAccounts: signal([{ id: 1, label: 'Compte A', isActive: true }]) };
+    mockCategoryService = { allCategories: signal([{ id: 10, label: 'Courses', isActive: true }]) };
+    mockPaymentMethodService = {
+      allPaymentMethods: signal([{ id: 20, label: 'Carte', isActive: true }]),
+    };
+
+    // Neutralisation de setupDynamicFiltering lors de la compilation pour maîtriser l'asynchronisme
+    vi.spyOn(TransactionsFilters.prototype, 'setupDynamicFiltering').mockImplementation(vi.fn());
 
     await TestBed.configureTestingModule({
-      imports: [TransactionsFilters, ReactiveFormsModule],
+      imports: [TransactionsFilters, ReactiveFormsModule, StubSelectLoopDirective],
       providers: [
         { provide: TransactionService, useValue: mockTransactionService },
-        { provide: AccountService, useValue: mockAccountService },
-        { provide: CategoryService, useValue: { allCategories: signal([]) } },
-        { provide: PaymentMethodService, useValue: { allPaymentMethods: signal([]) } },
         { provide: DashboardService, useValue: mockDashboardService },
+        { provide: AccountService, useValue: mockAccountService },
+        { provide: CategoryService, useValue: mockCategoryService },
+        { provide: PaymentMethodService, useValue: mockPaymentMethodService },
       ],
-      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
+  });
 
+  const createComponent = async (): Promise<void> => {
     fixture = TestBed.createComponent(TransactionsFilters);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  describe('Initialisation et Liaison des Données (OnInit)', () => {
+    it('should generate form controls and query unique recurrences from service pipeline', async () => {
+      await createComponent();
+
+      expect(component['filterForm']).toBeDefined();
+      expect(component['filterForm'].get('limit')?.value).toBe(50);
+      expect(mockTransactionService.loadUniqueRecurrences).toHaveBeenCalled();
+    });
+
+    it('should pre-populate account identifier control based on dashboard global context states', async () => {
+      selectedAccountIdSignal.set(42);
+      await createComponent();
+
+      // On compare des types identiques (number ou string selon le format reçu)
+      expect(Number(component['filterForm'].get('accountId')?.value)).toBe(42);
+    });
   });
 
-  it('should create and initialize form with default value structures', () => {
-    const filterForm = component['filterForm'] as FormGroup;
+  describe('Gestion Rétractable de l Affichage (Toggle)', () => {
+    it('should update open state variable flags and follow user clicks', async () => {
+      await createComponent();
+      expect(component['isFilterOpen']()).toBe(false);
 
-    expect(component).toBeTruthy();
-    expect(filterForm.get('isChecked')).toBeDefined();
-    expect(filterForm.value.isChecked).toBe('');
-    expect(filterForm.value.limit).toBe(50);
+      component['toggleFilterOpen']();
+      expect(component['isFilterOpen']()).toBe(true);
+    });
+  });
+  describe('Réinitialisations et Purges Métier (clearFilters)', () => {
+    beforeEach(async () => {
+      await createComponent();
+      component['filterForm'].patchValue({
+        accountId: '1',
+        categoryId: '10',
+        year: 2026,
+      });
+    });
+
+    it('should reset target input properties to baseline empty values upon clearSingleFilter execution', () => {
+      component.clearSingleFilter('categoryId');
+      expect(component['filterForm'].get('categoryId')?.value).toBe('');
+      expect(component['filterForm'].get('year')?.value).toBe(2026);
+    });
+
+    it('should explicitly clear global dashboard state pointers if target field matches accountId', () => {
+      component.clearSingleFilter('accountId');
+      expect(component['filterForm'].get('accountId')?.value).toBe('');
+      expect(mockDashboardService.selectedAccountId()).toBeNull();
+    });
+
+    it('should flush all input entries variables to defaults parameters on clearAllFilters submittal', () => {
+      component.clearAllFilters();
+
+      expect(component['filterForm'].get('categoryId')?.value).toBe('');
+      expect(component['filterForm'].get('limit')?.value).toBe(50);
+      expect(mockDashboardService.selectedAccountId()).toBeNull();
+      expect(mockTransactionService.loadFilteredTransactions).toHaveBeenCalledWith({ limit: 50 });
+    });
   });
 
-  it('should filter out empty fields and ignore truncated year inputs dynamically', async () => {
-    const filterForm = component['filterForm'] as FormGroup;
+  describe('Validation de la Cinématique Filtrante Asynchrone', () => {
+    it('should execute backend requests pipeline dynamically and register stream results', async () => {
+      // Restauration de l'implémentation d'origine uniquement pour ce bloc
+      vi.restoreAllMocks();
 
-    filterForm.patchValue({ year: '202' });
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      fixture = TestBed.createComponent(TransactionsFilters);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
 
-    expect(mockTransactionService.loadFilteredTransactions).not.toHaveBeenCalledWith(
-      expect.objectContaining({ year: '202' }),
-    );
+      // On déclenche la modification du formulaire
+      component['filterForm'].patchValue({ type: 'DEBIT' });
+      fixture.detectChanges();
 
-    filterForm.patchValue({ year: '2026', month: '8' });
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      // On attend la fin des 300ms de debounceTime de manière native
+      await new Promise((resolve) => setTimeout(resolve, 310));
+      fixture.detectChanges();
 
-    expect(mockTransactionService.loadFilteredTransactions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        year: '2026',
-        month: '8',
-      }),
-    );
-  });
-
-  it('should reset all form controls and flush global account state when clearAllFilters is invoked', () => {
-    const filterForm = component['filterForm'] as FormGroup;
-    filterForm.patchValue({ isChecked: 'true', accountId: '12' });
-
-    component.clearAllFilters();
-
-    expect(filterForm.value.isChecked).toBe('');
-    expect(filterForm.value.accountId).toBe('');
-    expect(mockTransactionService.selectedAccountIdFilter!()).toBeNull();
-    expect(mockTransactionService.loadFilteredTransactions).toHaveBeenCalledWith(
-      expect.objectContaining({ limit: 50 }),
-    );
-  });
-
-  it('should reset a single target control when clearSingleFilter is called', () => {
-    const filterForm = component['filterForm'] as FormGroup;
-    filterForm.patchValue({ isChecked: 'false', type: 'DEBIT' });
-
-    component.clearSingleFilter('isChecked');
-
-    expect(filterForm.value.isChecked).toBe('');
-    expect(filterForm.value.type).toBe('DEBIT');
+      expect(mockTransactionService.loadFilteredTransactions).toHaveBeenCalled();
+      expect(mockDashboardService.loadBalances).toHaveBeenCalled();
+    });
   });
 });

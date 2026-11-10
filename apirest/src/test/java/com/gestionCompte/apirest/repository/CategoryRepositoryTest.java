@@ -2,6 +2,9 @@ package com.gestionCompte.apirest.repository;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -21,7 +24,8 @@ public class CategoryRepositoryTest {
     private TestEntityManager entityManager;
     
     @Test
-    public void should_return_only_active_categories() {
+    void should_return_only_active_categories() {
+        // Arrange
         String uniqueLabelActive = "Catégorie Test Active Unique";
         String uniqueLabelInactive = "Catégorie Test Inactive Unique";
 
@@ -37,6 +41,7 @@ public class CategoryRepositoryTest {
 
         entityManager.flush();
 
+        // Act
         List<Category> activeCategories = categoryRepository.findByIsActiveTrue();
 
         boolean activeFound = false;
@@ -47,9 +52,8 @@ public class CategoryRepositoryTest {
             if (cat.getLabel().equals(uniqueLabelInactive)) inactiveFound = true;
         }
 
-        if (!activeFound || inactiveFound) {
-            throw new AssertionError("Échec : Le filtrage par statut actif ne fonctionne pas correctement !");
-        }
+        // Assert (Remplacement du bloc "if" par les vraies assertions reconnues par SonarQube)
+        assertTrue(activeFound, "La catégorie active aurait dû être trouvée");
+        assertFalse(inactiveFound, "La catégorie inactive n'aurait pas dû être retournée");
     }
-
 }

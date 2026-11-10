@@ -1,179 +1,330 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
-import { Account } from '../account.model';
-import { AccountService } from '../account.service';
+import { Component, input, output, signal, WritableSignal } from '@angular/core';
 import { AccountListComponent } from './account-list.component';
+import { AccountService } from '../account.service';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { Account, AccountType } from '../account.model';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of, throwError } from 'rxjs';
+import localeFr from '@angular/common/locales/fr';
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import { AccountFormComponent } from '../account-form/account-form.component';
+import { ModalComponent } from '../../../shared/modal/modal.component';
+
+registerLocaleData(localeFr, 'fr-FR');
+
+// --- Stubs pour isoler les dépendances enfants complexes ---
+@Component({ selector: 'app-account-form', template: '' })
+class StubAccountFormComponent {}
+
+@Component({ selector: 'app-modal', template: '' })
+class StubModalComponent {
+  readonly title = input<string>('');
+  readonly options = input<string>('');
+  readonly type = input<string>('');
+  readonly confirmText = input<string>('');
+  readonly cancelText = input<string>('');
+  readonly resultAction = output<any>();
+}
 
 describe('AccountListComponent', () => {
   let component: AccountListComponent;
   let fixture: ComponentFixture<AccountListComponent>;
+  let mockAccountService: any;
+  let mockToastService: any;
 
-  const mockAllAccounts = signal<Account[]>([]);
-  const mockEditingAccount = signal<Account | null>(null);
+  let allAccountsSignal: WritableSignal<Account[]>;
+  let editingAccountSignal: WritableSignal<Account | null>;
 
-  const mockToastService: { show: Mock } = { show: vi.fn() };
+  const getMockAccounts = (): Account[] => [
+    {
+      id: 1,
+      label: 'Compte Principal',
+      type: AccountType.COURANT,
+      initialBalance: 1200.5,
+      isDefault: true,
+      isActive: true,
+      position: 0,
+    },
+    {
+      id: 2,
+      label: 'Livret A',
+      type: AccountType.EPARGNE,
+      initialBalance: 5000,
+      isDefault: false,
+      isActive: true,
+      position: 1,
+    },
+    {
+      id: 3,
+      label: 'Compte Archivé',
+      type: AccountType.COURANT,
+      initialBalance: 0,
+      isDefault: false,
+      isActive: false,
+      position: 2,
+    },
+  ];
 
-  window.HTMLElement.prototype.scrollIntoView = vi.fn();
-  const mockAccountService: Partial<AccountService> = {
-    allAccounts: mockAllAccounts,
-    editingAccount: mockEditingAccount,
-    updateAccountByDefault: vi.fn(),
-    deleteAccount: vi.fn(),
-    saveAll: vi.fn(),
-  };
+  const el = (): HTMLElement => fixture.nativeElement as HTMLElement;
+  const norm = (value: string | null | undefined): string =>
+    (value ?? '').replace(/\s+/g, ' ').trim();
+  const text = (selector: string): string => norm(el().querySelector(selector)?.textContent);
+  const compact = (value: string): string => value.replace(/\s/g, '');
 
   beforeEach(async () => {
-    vi.clearAllMocks();
-    mockAllAccounts.set([]);
-    mockEditingAccount.set(null);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await TestBed.configureTestingModule({
+    // Simuler le scrollIntoView global du DOM pour éviter les crashs de test
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
+    allAccountsSignal = signal<Account[]>(getMockAccounts());
+    editingAccountSignal = signal<Account | null>(null);
+
+    mockAccountService = {
+      allAccounts: allAccountsSignal,
+      editingAccount: editingAccountSignal,
+      deleteAccount: vi.fn().mockReturnValue(of(true)),
+      updateAccountByDefault: vi.fn().mockReturnValue(of(true)),
+      setAccountActive: vi.fn().mockReturnValue(of(true)),
+      saveAll: vi.fn().mockReturnValue(of(true)),
+    };
+
+    mockToastService = {
+      show: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
       imports: [AccountListComponent],
       providers: [
         { provide: AccountService, useValue: mockAccountService },
         { provide: ToastService, useValue: mockToastService },
+        { provide: LOCALE_ID, useValue: 'fr-FR' },
       ],
-    }).compileComponents();
+    }).overrideComponent(AccountListComponent, {
+      remove: {
+        // On retire uniquement les vrais formulaires et modales complexes
+        imports: [AccountFormComponent, ModalComponent],
+      },
+      add: {
+        // On injecte nos stubs à la place
+        imports: [StubAccountFormComponent, StubModalComponent],
+      },
+    });
 
+    await TestBed.compileComponents();
+  });
+
+  const createComponent = async (): Promise<void> => {
     fixture = TestBed.createComponent(AccountListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  describe('Cycle de vie et Signaux Internes', () => {
+    it('should query accounts collection signal and bind parameters onto class arrays', async () => {
+      await createComponent();
+
+      expect(component['accounts']()).toHaveLength(3);
+      expect(component['accounts']()[0].label).toBe('Compte Principal');
+      expect(component['accounts']()[2].isActive).toBe(false);
+    });
+
+    it('should set active editing signal and scroll to form element upon onEdit trigger', async () => {
+      await createComponent();
+      const targetAccount = getMockAccounts()[0];
+      const spyScroll = vi.spyOn(window.HTMLElement.prototype, 'scrollIntoView');
+
+      const fakeForm = document.createElement('div');
+      fakeForm.id = 'editForm';
+      el().appendChild(fakeForm);
+
+      component['onEdit'](targetAccount);
+
+      expect(editingAccountSignal()).toEqual(targetAccount);
+      expect(spyScroll).toHaveBeenCalled();
+      fakeForm.remove();
+    });
   });
 
-  it('should create the list component', () => {
-    expect(component).toBeTruthy();
+  describe('Tri par boutons directionnels (moveUp / moveDown)', () => {
+    beforeEach(async () => {
+      await createComponent();
+    });
+
+    it('should return immediately without updates when moveUp hits index 0', () => {
+      component.moveUp(getMockAccounts()[0]);
+      expect(mockAccountService.saveAll).not.toHaveBeenCalled();
+    });
+
+    it('should reverse adjacent elements indexes position configurations on valid moveUp action', () => {
+      component.moveUp(getMockAccounts()[1]);
+
+      expect(mockAccountService.saveAll).toHaveBeenCalled();
+      const payload = mockAccountService.saveAll.mock.calls[0][0];
+      expect(payload[0].id).toBe(2);
+      expect(payload[0].position).toBe(0);
+    });
+
+    it('should prevent index operations when moveDown boundaries hit lower limits', () => {
+      component.moveDown(getMockAccounts()[2]);
+      expect(mockAccountService.saveAll).not.toHaveBeenCalled();
+    });
+
+    it('should swap positions accurately on valid moveDown actions triggers', () => {
+      component.moveDown(getMockAccounts()[0]);
+
+      expect(mockAccountService.saveAll).toHaveBeenCalled();
+      const payload = mockAccountService.saveAll.mock.calls[0][0];
+      expect(payload[1].id).toBe(1);
+    });
+  });
+  describe('Drag & Drop et Traitement CdkDragDrop', () => {
+    it('should calculate new sequence positions accurately and persist changes via saveAll', async () => {
+      await createComponent();
+
+      const mockDragDropEvent: any = {
+        previousIndex: 1, // Déplacement du Livret A
+        currentIndex: 0, // Vers le premier emplacement
+      };
+
+      component['onDrop'](mockDragDropEvent);
+
+      expect(mockAccountService.saveAll).toHaveBeenCalled();
+      const payload = mockAccountService.saveAll.mock.calls[0][0];
+      // Le Livret A doit se retrouver en première position
+      expect(payload[0].id).toBe(2);
+      expect(payload[0].position).toBe(0);
+      expect(payload[1].id).toBe(1);
+      expect(payload[1].position).toBe(1);
+    });
   });
 
-  it('should propagate account data to editingAccount signal upon edit action', () => {
-    const targetAccount: Account = {
-      id: 1,
-      label: 'Livret A',
-      initialBalance: 1000,
-      isDefault: false,
-      isActive: true,
-      position: 0,
-    };
+  describe('Validation des Modales et Actions de Confirmation', () => {
+    beforeEach(async () => {
+      await createComponent();
+    });
 
-    component['onEdit'](targetAccount);
+    // --- Changement de compte principal ---
+    it('should invoke toggleAccountByDefault when confirm is received on principal change modal', () => {
+      const targetAccount = getMockAccounts()[1];
+      component['accountToSetDefault'].set(targetAccount);
 
-    expect(mockEditingAccount()).toEqual(targetAccount);
-  });
+      component['onConfirmDefaultAction']('confirm');
 
-  it('should request backend delete and archive gracefully if isHardDeleted is false', () => {
-    const targetAccount: Account = {
-      id: 42,
-      label: 'Compte Joint',
-      initialBalance: 500,
-      isDefault: false,
-      isActive: true,
-      position: 1,
-    };
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    (mockAccountService.deleteAccount as Mock).mockReturnValue(of(false));
-
-    component['onDelete'](targetAccount);
-
-    expect(mockAccountService.deleteAccount).toHaveBeenCalledWith(42);
-    expect(mockToastService.show).toHaveBeenCalledWith(
-      'Au moins une transaction est rattachée à ce compte : il a été archivé avec succès',
-      'success',
-    );
-  });
-
-  it('should handle cancel action on delete dialog without triggering API call', () => {
-    const targetAccount: Account = {
-      id: 42,
-      label: 'Compte Joint',
-      initialBalance: 500,
-      isDefault: false,
-      isActive: true,
-      position: 1,
-    };
-    component['accountToDelete'].set(targetAccount);
-
-    component['onConfirmDeleteAction']('cancel');
-
-    expect(component['accountToDelete']()).toBeNull();
-    expect(mockAccountService.deleteAccount).not.toHaveBeenCalled();
-  });
-
-  it('should switch isDefault attribute and call updateAccountByDefault API', () => {
-    const targetAccount: Account = {
-      id: 2,
-      label: 'Courant',
-      initialBalance: 100,
-      isDefault: false,
-      isActive: true,
-      position: 0,
-    };
-    (mockAccountService.updateAccountByDefault as Mock).mockReturnValue(of(targetAccount));
-
-    component['toggleAccountByDefault'](targetAccount);
-
-    expect(mockAccountService.updateAccountByDefault).toHaveBeenCalledWith(
-      2,
-      expect.objectContaining({
+      expect(mockAccountService.updateAccountByDefault).toHaveBeenCalledWith(2, {
+        ...targetAccount,
         isDefault: true,
-      }),
-    );
+      });
+      expect(mockToastService.show).toHaveBeenCalledWith(
+        'Le changement de compte principal a été effectué.',
+        'success',
+      );
+    });
+
+    it('should clear default account signal state on cancel action selection', () => {
+      component['accountToSetDefault'].set(getMockAccounts()[0]);
+
+      component['onConfirmDefaultAction']('cancel');
+
+      expect(component['accountToSetDefault']()).toBeNull();
+      expect(mockAccountService.updateAccountByDefault).not.toHaveBeenCalled();
+    });
+
+    // --- Suppression / Archivage de compte ---
+    it('should send hard delete toast notice if service returns true', () => {
+      const targetAccount = getMockAccounts()[0];
+      component['accountToDelete'].set(targetAccount);
+
+      component['onConfirmDeleteAction']('confirm');
+
+      expect(mockAccountService.deleteAccount).toHaveBeenCalledWith(1);
+      expect(mockToastService.show).toHaveBeenCalledWith(
+        'Le compte a été supprimé avec succès',
+        'success',
+      );
+    });
+
+    it('should send archive warning toast if server rejects hard deletion but updates status', () => {
+      mockAccountService.deleteAccount.mockReturnValue(of(false)); // Simule l'archivage
+      const targetAccount = getMockAccounts()[0];
+      component['accountToDelete'].set(targetAccount);
+
+      component['onConfirmDeleteAction']('confirm');
+
+      expect(mockToastService.show).toHaveBeenCalledWith(
+        'Au moins une transaction est rattachée à ce compte : il a été archivé avec succès',
+        'success',
+      );
+    });
+
+    // --- Réactivation de compte ---
+    it('should trigger update status and toggle isActive to true upon confirmation', () => {
+      const targetAccount = getMockAccounts()[2]; // Compte Archivé
+      component['accountToSetActive'].set(targetAccount);
+
+      component['onConfirmSetActiveAction']('confirm');
+
+      expect(mockAccountService.setAccountActive).toHaveBeenCalledWith(3, {
+        ...targetAccount,
+        isActive: true,
+      });
+      expect(mockToastService.show).toHaveBeenCalledWith('Le compte a été réactivé.', 'success');
+    });
   });
 
-  it('should process drag and drop event, re-index positions and trigger bulk save API', () => {
-    const accountA = {
-      id: 10,
-      label: 'A',
-      initialBalance: 0,
-      isDefault: false,
-      isActive: true,
-      position: 0,
-    };
-    const accountB = {
-      id: 20,
-      label: 'B',
-      initialBalance: 0,
-      isDefault: false,
-      isActive: true,
-      position: 1,
-    };
-    mockAllAccounts.set([accountA, accountB]);
+  describe('Intégration du Template DOM et Rendu des Éléments', () => {
+    it('should list available accounts entries and toggle specific class attributes if disabled', async () => {
+      await createComponent();
 
-    (mockAccountService.saveAll as Mock).mockReturnValue(of([accountB, accountA]));
+      const items = el().querySelectorAll('.data-list .data-item');
+      expect(items).toHaveLength(3);
 
-    const mockDragDropEvent = {
-      previousIndex: 0,
-      currentIndex: 1,
-    } as CdkDragDrop<Account[]>;
+      // Les 2 premiers sont actifs
+      expect(items[0].classList.contains('item-disabled')).toBe(false);
+      expect(items[1].classList.contains('item-disabled')).toBe(false);
 
-    component['onDrop'](mockDragDropEvent);
+      // Le 3ème est archivé
+      expect(items[2].classList.contains('item-disabled')).toBe(true);
+      expect(text('.data-list .data-item:last-of-type .badge-archived')).toBe('(Archivé)');
+    });
 
-    expect(mockAccountService.saveAll).toHaveBeenCalledWith([
-      expect.objectContaining({ id: 20, position: 0 }),
-      expect.objectContaining({ id: 10, position: 1 }),
-    ]);
-  });
+    it('should isolate main row balances parameters using proper localized currency formatting', async () => {
+      await createComponent();
 
-  it('should set an error message in case of API failure during default toggle', () => {
-    const targetAccount: Account = {
-      id: 2,
-      label: 'Courant',
-      initialBalance: 100,
-      isDefault: false,
-      isActive: true,
-      position: 0,
-    };
-    (mockAccountService.updateAccountByDefault as Mock).mockReturnValue(
-      throwError(() => new Error('Network Error')),
-    );
+      const subText = text('.data-list .data-item:first-of-type .item-sub');
 
-    component['toggleAccountByDefault'](targetAccount);
+      // Nettoyage des espaces insécables pour la validation
+      const compactSubText = subText.replace(/\s/g, '');
+      expect(compactSubText).toContain('1200,50€');
+    });
 
-    expect(mockToastService.show).toHaveBeenCalledWith(
-      'Erreur lors de la modification du compte principal.',
-      'error',
-    );
+    it('should render solid golden badges indicators only for the core main active account', async () => {
+      await createComponent();
+
+      const mainAccountBadge = el().querySelector(
+        '.data-list .data-item:first-of-type .badge-success-solid',
+      );
+      expect(mainAccountBadge).not.toBeNull();
+      expect(norm(mainAccountBadge?.textContent)).toBe('⭐ Principal');
+
+      const secondaryAccountBadge = el().querySelector(
+        '.data-list .data-item:nth-of-type(2) .badge-success-solid',
+      );
+      expect(secondaryAccountBadge).toBeNull();
+    });
+
+    it('should shift rendering loops layout views onto fallback empty messages when arrays drop down to zero', async () => {
+      allAccountsSignal.set([]);
+      await createComponent();
+
+      expect(el().querySelector('.data-item')).toBeNull();
+      const emptyMsg = el().querySelector('.data-list p.text-muted');
+      expect(emptyMsg).not.toBeNull();
+      expect(norm(emptyMsg?.textContent)).toBe('Aucun compte disponible pour le moment.');
+    });
   });
 });

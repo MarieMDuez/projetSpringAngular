@@ -8,10 +8,10 @@ import { Category } from './category.model';
   providedIn: 'root',
 })
 export class CategoryService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/categories`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/categories`;
 
-  private allCategoriesSignal = signal<Category[]>([]);
+  private readonly allCategoriesSignal = signal<Category[]>([]);
   public editingCategory = signal<Category | null>(null);
 
   public allCategories = computed(() => this.allCategoriesSignal());

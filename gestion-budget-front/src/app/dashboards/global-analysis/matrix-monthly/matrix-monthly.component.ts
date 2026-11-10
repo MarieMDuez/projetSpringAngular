@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { TransactionService } from '../../../transaction/transaction.service';
-import { DashboardService } from '../../dashboard.service'; // Ajuste tes chemins
+import { DashboardService } from '../../dashboard.service';
 import { MatrixMonthlyDto, PaymentMethodMonthlyRowDto } from './matrix-monthly.model';
 
 @Component({
@@ -11,11 +11,13 @@ import { MatrixMonthlyDto, PaymentMethodMonthlyRowDto } from './matrix-monthly.m
   templateUrl: './matrix-monthly.component.html',
   styleUrl: './matrix-monthly.component.scss',
 })
-export class MatrixMonthlyComponent implements OnInit {
+export class MatrixMonthlyComponent {
   protected dashboardService = inject(DashboardService);
   protected transactionService = inject(TransactionService);
 
   protected matrixData = signal<MatrixMonthlyDto | null>(null);
+  protected matrixProjectedData = signal<MatrixMonthlyDto | null>(null);
+
   protected isLoading = signal<boolean>(false);
 
   protected isMatrixAllExpanded = signal<boolean>(false);
@@ -24,28 +26,16 @@ export class MatrixMonthlyComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const account = this.transactionService.selectedAccountIdFilter();
-      const year = this.dashboardService.selectedYear();
-      const month = this.dashboardService.selectedMonth();
-      const isChecked = this.dashboardService.isCheckedFilter();
-
-      this.loadMonthlyMatrix(account, year, month, isChecked);
+      this.loadMonthlyMatrix();
     });
   }
 
-  ngOnInit(): void {}
-
-  private loadMonthlyMatrix(
-    accountId: number | null,
-    year: number,
-    month: number | null,
-    isChecked: boolean | null,
-  ): void {
+  private loadMonthlyMatrix(): void {
     this.isLoading.set(true);
 
-    this.dashboardService.getMonthlyMatrix(accountId, year, month, isChecked).subscribe({
+    this.dashboardService.getMonthlyMatrix().subscribe({
       next: (data: MatrixMonthlyDto) => {
-        if (data && data.rows) {
+        if (data?.rows) {
           data.rows.forEach((row: PaymentMethodMonthlyRowDto) => {
             row.isExpanded = false;
           });
@@ -54,7 +44,7 @@ export class MatrixMonthlyComponent implements OnInit {
         }
 
         this.matrixData.set(data);
-        this.isMatrixAllExpanded.set(false); // Reset du bouton au changement de filtre
+        this.isMatrixAllExpanded.set(false);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -70,10 +60,11 @@ export class MatrixMonthlyComponent implements OnInit {
     const targetState = this.isMatrixAllExpanded();
     const currentData = this.matrixData();
 
-    if (currentData && currentData.rows) {
+    if (currentData?.rows) {
       currentData.rows.forEach((row: PaymentMethodMonthlyRowDto) => {
         row.isExpanded = targetState;
       });
+
       this.matrixData.set({ ...currentData });
     }
   }

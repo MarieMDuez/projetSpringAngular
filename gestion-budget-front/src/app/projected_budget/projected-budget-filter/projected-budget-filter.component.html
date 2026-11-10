@@ -1,0 +1,107 @@
+<header class="cockpit-filter-area">
+
+    <div class="section-trigger">
+        <h2 class="section-title">Choisissez une période</h2>
+    </div>
+
+    <div class="cockpit-filter-container">
+
+        <div class="cockpit-filter-row">
+            <div class="cockpit-filter-area-content">
+                <div class="filter-form">
+                    <div class="filter-group">
+                        <label for="filter-account">Compte</label>
+                        <select id="filter-account" [(ngModel)]="dashboardService.selectedAccountId"
+                            (ngModelChange)="onAccountChange($event)">
+                            <option [ngValue]="null">— Tous les comptes —</option>
+                            @for (acc of accounts(); track acc.id) {
+                            <option [ngValue]="acc.id">{{ acc.label }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-group">
+
+                        <label for="selectPeriod">Budgets existants :</label>
+                        <select id="selectPeriod" class="form-select" [ngModel]="selectPeriodId()"
+                            (ngModelChange)="selectPeriodId.set($event)">
+                            <option [ngValue]="null">-- Choisir --</option>
+                            @for (period of availablePeriods(); track period.id) {
+                            <option [ngValue]="period.id">
+                                Budget de {{ period.month | number:'2.0' }}/{{ period.year }}
+                            </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn-primary" [class.disabled]="!isFilterValid() || selectedModelPeriodId()"
+                    [disabled]="!isFilterValid() || selectedModelPeriodId()" (click)="onLoadBudget()">
+                    Charger le budget
+                </button>
+            </div>
+
+
+
+        </div>
+
+        <div class="duplication-filter-row">
+            <div class="filter-group">
+                <label for="filter-month">Mois</label>
+                <select id="filter-month" (change)="onMonthChange($event)">
+                    <option value="">— Toute l'année —</option>
+                    @for (m of availableMonths; track m.value) {
+                    <option [value]="m.value" [selected]="m.value === dashboardService.selectedMonth()">
+                        {{ m.label | titlecase }}
+                    </option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-year">Année</label>
+                <select id="filter-year" (change)="onYearChange($event)">
+                    @for (y of availableYears; track y) {
+                    <option [value]="y" [selected]="y === dashboardService.selectedYear()">{{ y }}</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group duplication-selector filter-group">
+                <label for="modelPeriodSelect">Initialiser à partir d'un modèle (12 derniers mois) :</label>
+                <select id="modelPeriodSelect" class="form-select" [ngModel]="selectedModelPeriodId()"
+                    (ngModelChange)="selectedModelPeriodId.set($event)">
+                    <option [ngValue]="null">-- Choisir --</option>
+                    @for (period of availablePeriods(); track period.id) {
+                    <option [ngValue]="period.id">
+                        Budget de {{ period.month | number:'2.0' }}/{{ period.year }}
+                    </option>
+                    }
+                </select>
+            </div>
+
+            <button type="button" class="btn-primary" [class.disabled]="!isFilterValid()" [disabled]="!isFilterValid() "
+                (click)="onLoadBudget(selectedModelPeriodId() ?? undefined, 'init')">
+                Créer le budget
+            </button>
+        </div>
+
+        @if(projectedBudgetService.activePeriod()){
+        <div class="periodInformations">
+            <h3>Période en cours d'édition :
+                {{projectedBudgetService.activePeriod()?.month | number:'2.0'}}
+                {{projectedBudgetService.activePeriod()?.year}}
+                (<strong>{{projectedBudgetService.activePeriod()?.weeksCount}} semaines</strong>)</h3>
+        </div>
+        }
+    </div>
+</header>
+
+
+
+<app-modal #copyProjectedBudgetModal title="Copie de budget" options="accept-reject" type="danger"
+    confirmText="Confirmer" cancelText="Annuler" (resultAction)="executeDuplicationItems($event)">
+
+    <p>
+        Un budget contient déjà des lignes pour cette période. Voulez-vous l’écraser avec le modèle sélectionné ou
+        afficher l’existant ?
+    </p>
+
+</app-modal>

@@ -1,6 +1,7 @@
 package com.gestionCompte.apirest.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import lombok.Data;
 
@@ -11,4 +12,5 @@ public class BalanceDashboardDto {
 	private BigDecimal initialBalance;
 	private BigDecimal currentBalance;
 	private BigDecimal projectedBalance;
+	private LocalDate firstNegativeDate;
 }

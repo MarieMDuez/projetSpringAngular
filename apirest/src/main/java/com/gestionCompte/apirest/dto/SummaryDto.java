@@ -3,8 +3,8 @@ package com.gestionCompte.apirest.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data

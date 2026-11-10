@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { AccountService } from '../../../settings/account/account.service'; // Ajuste le chemin
+import { AccountService } from '../../../settings/account/account.service';
 import { TransactionService } from '../../../transaction/transaction.service';
-import { DashboardService } from '../../dashboard.service'; // Ajuste le chemin selon ton projet
+import { DashboardService } from '../../dashboard.service';
 import { AnalyticsEvolutionDto } from './analytics-evolution.model';
 
 @Component({
@@ -13,7 +13,7 @@ import { AnalyticsEvolutionDto } from './analytics-evolution.model';
   templateUrl: './analytics-evolution.component.html',
   styleUrl: './analytics-evolution.component.scss',
 })
-export class AnalyticsEvolutionComponent implements OnInit {
+export class AnalyticsEvolutionComponent {
   protected dashboardService = inject(DashboardService);
   protected accountService = inject(AccountService);
   protected transactionService = inject(TransactionService);
@@ -54,22 +54,12 @@ export class AnalyticsEvolutionComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const account = this.transactionService.selectedAccountIdFilter();
-      const year = this.dashboardService.selectedYear();
-      const isChecked = this.dashboardService.isCheckedFilter();
-
-      this.loadEvolutionData(account, year, isChecked);
+      this.loadEvolutionData();
     });
   }
 
-  ngOnInit(): void {}
-
-  private loadEvolutionData(
-    accountId: number | null,
-    year: number,
-    isChecked: boolean | null,
-  ): void {
-    this.dashboardService.getEvolution(accountId, year, isChecked).subscribe({
+  private loadEvolutionData(): void {
+    this.dashboardService.getEvolution().subscribe({
       next: (data) => this.evolutionData.set(data),
       error: () => console.error("Erreur lors du chargement de l'évolution chronologique"),
     });

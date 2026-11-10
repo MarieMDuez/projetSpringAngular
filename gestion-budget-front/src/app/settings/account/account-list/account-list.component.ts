@@ -1,12 +1,12 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { CurrencyPipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { AccountFormComponent } from '../account-form/account-form.component';
-import { Account } from '../account.model';
+import { Account, AccountTypeLabels } from '../account.model';
 import { AccountService } from '../account.service';
 
 @Component({
@@ -22,20 +22,18 @@ import { AccountService } from '../account.service';
   templateUrl: './account-list.component.html',
   styleUrl: './account-list.component.scss',
 })
-export class AccountListComponent implements OnInit {
-  private accountService = inject(AccountService);
-  private toastService = inject(ToastService);
+export class AccountListComponent {
+  private readonly accountService = inject(AccountService);
+  private readonly toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
   protected accountToSetDefault = signal<Account | null>(null);
   protected accountToDelete = signal<Account | null>(null);
   protected accountToSetActive = signal<Account | null>(null);
-
-  ngOnInit() {}
+  protected readonly accountTypeLabels = AccountTypeLabels;
 
   protected onEdit(account: Account): void {
     if (account.id != null) this.accountService.editingAccount.set(account);
-
     /*Pour remonter au formulaire qui s'auto-rempli*/
     const formElement = document.getElementById('editForm');
     if (formElement) {
@@ -84,8 +82,8 @@ export class AccountListComponent implements OnInit {
 
     moveItemInArray(listeModifiable, event.previousIndex, event.currentIndex);
 
-    const listeMiseAJour = listeModifiable.map((category, index) => ({
-      ...category,
+    const listeMiseAJour = listeModifiable.map((account, index) => ({
+      ...account,
       position: index,
     }));
     this.accountService.saveAll(listeMiseAJour).subscribe();
@@ -131,5 +129,37 @@ export class AccountListComponent implements OnInit {
     } else {
       this.accountToSetActive.set(null);
     }
+  }
+  moveUp(acc: Account) {
+    const listeModifiable = [...this.accounts()];
+
+    const idx = this.accounts().findIndex((item) => item.id === acc.id);
+    if (idx <= 0) return;
+
+    const currentItem = listeModifiable[idx];
+    const previousItem = listeModifiable[idx - 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx - 1] = { ...currentItem, position: previousItem.position };
+    listeModifiable[idx] = { ...previousItem, position: currentPosition };
+
+    this.accountService.saveAll(listeModifiable).subscribe();
+  }
+  moveDown(acc: Account) {
+    const listeModifiable = [...this.accounts()];
+
+    const idx = this.accounts().findIndex((item) => item.id === acc.id);
+    if (idx === -1 || idx >= listeModifiable.length - 1) return;
+
+    const currentItem = listeModifiable[idx];
+    const nextItem = listeModifiable[idx + 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx] = { ...nextItem, position: nextItem.position };
+    listeModifiable[idx + 1] = { ...currentItem, position: currentPosition };
+
+    this.accountService.saveAll(listeModifiable).subscribe();
   }
 }

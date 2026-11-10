@@ -34,7 +34,7 @@ import lombok.ToString;
         @Index(name = "idx_transaction_account", columnList = "account_id")
     })
 public class Transaction {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,39 +42,39 @@ public class Transaction {
 	@JsonProperty("emissionDate")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private LocalDate emissionDate;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "account_id", nullable = false)
 	private Account account;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "payment_method_id", nullable = false)
 	private PaymentMethod paymentMethod;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "category_id", nullable = false)
 	private Category category;
-	
-	@Column(nullable = true) 
+
+	@Column(nullable = true)
 	private String description;
-	
+
 	@Column(nullable = false)
 	@Positive(message = "The amount must be strictly positive")
 	private BigDecimal amount;
-	
-	
+
+
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false) 
+	@Column(nullable = false)
 	private TransactionType type;
-	
-	@Column(nullable = true) 
-	private Integer recurrenceMonths = 0; 
+
+	@Column(nullable = true)
+	private Integer recurrenceMonths = 0;
 	@JsonProperty("isAlertTriggered")
-	private boolean isAlertTriggered = false; 
-	
+	private boolean isAlertTriggered = false;
+
 	@JsonProperty("isChecked")
 	private boolean isChecked = false;
-	
+
 	private Long parentTransactionId;
 
 }

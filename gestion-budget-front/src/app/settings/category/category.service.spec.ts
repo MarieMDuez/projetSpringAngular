@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -18,6 +18,15 @@ describe('CategoryService', () => {
     { id: 3, label: 'Santé', isActive: false, position: 2 },
   ];
 
+  /** Copie profonde pour isoler chaque test du jeu de données partagé. */
+  const fresh = (): Category[] => structuredClone(mockCategories);
+
+  /** Charge l'état initial du service avec les 3 catégories de test. */
+  const loadInitialState = (): void => {
+    service.getCategories().subscribe();
+    httpMock.expectOne(apiUrl).flush(fresh());
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [CategoryService, provideHttpClient(), provideHttpClientTesting()],
@@ -35,94 +44,265 @@ describe('CategoryService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should fetch categories and compute active ones correctly', () => {
-    service.getCategories().subscribe();
-
-    const req = httpMock.expectOne(apiUrl);
-    expect(req.request.method).toBe('GET');
-    req.flush(mockCategories);
-
-    expect(service.allCategories()).toHaveLength(3);
-    expect(service.activeCategories()).toHaveLength(2);
-  });
-
-  it('should POST a new category and push it to the state array', () => {
-    const newCat: Category = { label: 'Cadeaux', isActive: true, position: 4 };
-    const savedCat: Category = { id: 4, ...newCat };
-
-    service['allCategoriesSignal'].set(mockCategories);
-
-    service.createCategory(newCat).subscribe((result) => {
-      expect(result).toEqual(savedCat);
+  describe('Initial State & Signals', () => {
+    it('should have empty signals by default', () => {
+      expect(service.allCategories()).toEqual([]);
+      expect(service.activeCategories()).toEqual([]);
+      expect(service.editingCategory()).toBeNull();
     });
 
-    const req = httpMock.expectOne(apiUrl);
-    expect(req.request.method).toBe('POST');
-    req.flush(savedCat);
+    it('should store and reset the editing category', () => {
+      service.editingCategory.set(mockCategories[0]);
+      expect(service.editingCategory()).toEqual(mockCategories[0]);
 
-    expect(service.allCategories()).toHaveLength(4);
-    expect(service.allCategories()[3].id).toBe(4);
+      service.editingCategory.set(null);
+      expect(service.editingCategory()).toBeNull();
+    });
   });
 
-  it('should PUT updates for a category and replace it in the state array', () => {
-    service['allCategoriesSignal'].set(mockCategories);
+  describe('getCategories()', () => {
+    it('should fetch categories via GET and compute active ones correctly', () => {
+      let result: Category[] | undefined;
+      service.getCategories().subscribe((c) => (result = c));
 
-    const updatedCat: Category = { id: 2, label: 'Cinéma & Restos', isActive: true, position: 1 };
+      const req = httpMock.expectOne(apiUrl);
+      expect(req.request.method).toBe('GET');
+      req.flush(fresh());
 
-    service.updateCategory(2, updatedCat).subscribe();
+      expect(result).toEqual(mockCategories);
+      expect(service.allCategories()).toEqual(mockCategories);
+      expect(service.activeCategories().map((c) => c.id)).toEqual([1, 2]);
+    });
 
-    const req = httpMock.expectOne(`${apiUrl}/2`);
-    expect(req.request.method).toBe('PUT');
-    req.flush(updatedCat);
+    it('should replace the previous state on a new fetch', () => {
+      loadInitialState();
 
-    const targetCat = service.allCategories().find((c) => c.id === 2);
-    expect(targetCat?.label).toBe('Cinéma & Restos');
+      service.getCategories().subscribe();
+      httpMock.expectOne(apiUrl).flush([mockCategories[0]]);
+
+      expect(service.allCategories()).toEqual([mockCategories[0]]);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      loadInitialState();
+
+      let error: HttpErrorResponse | undefined;
+      service.getCategories().subscribe({ error: (e) => (error = e) });
+      httpMock.expectOne(apiUrl).flush('boom', { status: 500, statusText: 'Server Error' });
+
+      expect(error?.status).toBe(500);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
   });
 
-  it('should process soft-delete by setting isActive to false when API returns false', () => {
-    service['allCategoriesSignal'].set(mockCategories);
+  describe('createCategory()', () => {
+    beforeEach(() => loadInitialState());
 
-    service.deleteCategory(2).subscribe();
+    it('should POST a new category and append it to the state array', () => {
+      const newCat: Category = { label: 'Cadeaux', isActive: true, position: 3 };
+      const savedCat: Category = { id: 4, ...newCat };
 
-    const req = httpMock.expectOne(`${apiUrl}/2`);
-    expect(req.request.method).toBe('DELETE');
-    req.flush(false);
+      let result: Category | undefined;
+      service.createCategory(newCat).subscribe((r) => (result = r));
 
-    expect(service.allCategories()).toHaveLength(3);
-    const category2 = service.allCategories().find((c) => c.id === 2);
-    expect(category2?.isActive).toBe(false);
-    expect(service.activeCategories()).toHaveLength(1);
+      const req = httpMock.expectOne(apiUrl);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(newCat);
+      req.flush(savedCat);
+
+      expect(result).toEqual(savedCat);
+      const categories = service.allCategories();
+      expect(categories).toHaveLength(4);
+      expect(categories[3]).toEqual(savedCat);
+      expect(categories.slice(0, 3)).toEqual(mockCategories);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      let error: HttpErrorResponse | undefined;
+      service
+        .createCategory({ label: 'Cadeaux', isActive: true, position: 3 })
+        .subscribe({ error: (e) => (error = e) });
+      httpMock.expectOne(apiUrl).flush('boom', { status: 500, statusText: 'Server Error' });
+
+      expect(error?.status).toBe(500);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
   });
 
-  it('should process hard-delete by evicting the row from the signal when API returns true', () => {
-    service['allCategoriesSignal'].set(mockCategories);
+  describe('updateCategory()', () => {
+    beforeEach(() => loadInitialState());
 
-    service.deleteCategory(2).subscribe();
+    it('should PUT updates and replace only the matching category', () => {
+      const updatedCat: Category = { id: 2, label: 'Cinéma & Restos', isActive: true, position: 1 };
 
-    const req = httpMock.expectOne(`${apiUrl}/2`);
-    expect(req.request.method).toBe('DELETE');
+      service.updateCategory(2, updatedCat).subscribe();
 
-    req.flush(true);
+      const req = httpMock.expectOne(`${apiUrl}/2`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(updatedCat);
+      req.flush(updatedCat);
 
-    expect(service.allCategories()).toHaveLength(2);
-    expect(service.allCategories().some((c) => c.id === 2)).toBe(false);
+      const categories = service.allCategories();
+      expect(categories).toHaveLength(3);
+      expect(categories.find((c) => c.id === 2)).toEqual(updatedCat);
+      expect(categories.find((c) => c.id === 1)).toEqual(mockCategories[0]);
+      expect(categories.find((c) => c.id === 3)).toEqual(mockCategories[2]);
+    });
+
+    it('should leave the state unchanged when the ID does not exist', () => {
+      const ghost: Category = { id: 999, label: 'Fantôme', isActive: true, position: 9 };
+
+      service.updateCategory(999, ghost).subscribe();
+      httpMock.expectOne(`${apiUrl}/999`).flush(ghost);
+
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      let error: HttpErrorResponse | undefined;
+      service
+        .updateCategory(2, { ...mockCategories[1], label: 'X' })
+        .subscribe({ error: (e) => (error = e) });
+      httpMock.expectOne(`${apiUrl}/2`).flush('boom', { status: 500, statusText: 'Server Error' });
+
+      expect(error?.status).toBe(500);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
   });
 
-  it('should overwrite entire state when bulk saveAll API is triggered', () => {
-    service['allCategoriesSignal'].set(mockCategories);
+  describe('deleteCategory()', () => {
+    beforeEach(() => loadInitialState());
 
-    const orderedCollection: Category[] = [
-      { id: 2, label: 'Loisirs', isActive: true, position: 0 },
-      { id: 1, label: 'Alimentation', isActive: true, position: 1 },
-    ];
+    it('should process soft-delete by setting isActive to false when API returns false', () => {
+      let result: boolean | undefined;
+      service.deleteCategory(2).subscribe((r) => (result = r));
 
-    service.saveAll(orderedCollection).subscribe();
+      const req = httpMock.expectOne(`${apiUrl}/2`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(false);
 
-    const req = httpMock.expectOne(`${apiUrl}/saveAll`);
-    expect(req.request.method).toBe('POST');
-    req.flush(orderedCollection);
+      expect(result).toBe(false);
+      const categories = service.allCategories();
+      expect(categories).toHaveLength(3);
+      expect(categories.find((c) => c.id === 2)).toEqual({ ...mockCategories[1], isActive: false });
+      expect(categories.find((c) => c.id === 1)).toEqual(mockCategories[0]);
+      expect(categories.find((c) => c.id === 3)).toEqual(mockCategories[2]);
+      expect(service.activeCategories().map((c) => c.id)).toEqual([1]);
+    });
 
-    expect(service.allCategories()).toHaveLength(2);
-    expect(service.allCategories()[0].id).toBe(2);
+    it('should process hard-delete by evicting the row when API returns true', () => {
+      let result: boolean | undefined;
+      service.deleteCategory(2).subscribe((r) => (result = r));
+
+      const req = httpMock.expectOne(`${apiUrl}/2`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(true);
+
+      expect(result).toBe(true);
+      expect(service.allCategories()).toEqual([mockCategories[0], mockCategories[2]]);
+      expect(service.activeCategories().map((c) => c.id)).toEqual([1]);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      let error: HttpErrorResponse | undefined;
+      service.deleteCategory(2).subscribe({ error: (e) => (error = e) });
+      httpMock.expectOne(`${apiUrl}/2`).flush('boom', { status: 404, statusText: 'Not Found' });
+
+      expect(error?.status).toBe(404);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
+  });
+
+  describe('setCategoryActive()', () => {
+    beforeEach(() => loadInitialState());
+
+    it('should activate the target category without affecting others', () => {
+      const activated: Category = { ...mockCategories[2], isActive: true };
+
+      service.setCategoryActive(3, activated).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/3/set-active`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(activated);
+      req.flush(activated);
+
+      const categories = service.allCategories();
+      expect(categories).toHaveLength(3);
+      expect(categories.find((c) => c.id === 3)).toEqual(activated);
+      expect(categories.find((c) => c.id === 1)).toEqual(mockCategories[0]);
+      expect(categories.find((c) => c.id === 2)).toEqual(mockCategories[1]);
+      expect(service.activeCategories().map((c) => c.id)).toEqual([1, 2, 3]);
+    });
+
+    it('should deactivate the target category and update activeCategories', () => {
+      const deactivated: Category = { ...mockCategories[1], isActive: false };
+
+      service.setCategoryActive(2, deactivated).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/2/set-active`);
+      expect(req.request.body).toEqual(deactivated);
+      req.flush(deactivated);
+
+      expect(service.allCategories().find((c) => c.id === 2)?.isActive).toBe(false);
+      expect(service.activeCategories().map((c) => c.id)).toEqual([1]);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      let error: HttpErrorResponse | undefined;
+      service
+        .setCategoryActive(3, { ...mockCategories[2], isActive: true })
+        .subscribe({ error: (e) => (error = e) });
+      httpMock
+        .expectOne(`${apiUrl}/3/set-active`)
+        .flush('boom', { status: 500, statusText: 'Server Error' });
+
+      expect(error?.status).toBe(500);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
+  });
+
+  describe('saveAll()', () => {
+    beforeEach(() => loadInitialState());
+
+    it('should POST the collection and overwrite the entire state', () => {
+      const ordered: Category[] = [
+        { id: 2, label: 'Loisirs', isActive: true, position: 0 },
+        { id: 1, label: 'Alimentation', isActive: true, position: 1 },
+      ];
+
+      let result: Category[] | undefined;
+      service.saveAll(ordered).subscribe((r) => (result = r));
+
+      const req = httpMock.expectOne(`${apiUrl}/saveAll`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(ordered);
+      req.flush(structuredClone(ordered));
+
+      expect(result).toEqual(ordered);
+      expect(service.allCategories().map((c) => c.id)).toEqual([2, 1]);
+      expect(service.allCategories().map((c) => c.position)).toEqual([0, 1]);
+    });
+
+    it('should handle an empty collection', () => {
+      service.saveAll([]).subscribe();
+
+      const req = httpMock.expectOne(`${apiUrl}/saveAll`);
+      expect(req.request.body).toEqual([]);
+      req.flush([]);
+
+      expect(service.allCategories()).toEqual([]);
+      expect(service.activeCategories()).toEqual([]);
+    });
+
+    it('should propagate the error and leave the state unchanged on failure', () => {
+      let error: HttpErrorResponse | undefined;
+      service.saveAll([mockCategories[0]]).subscribe({ error: (e) => (error = e) });
+      httpMock
+        .expectOne(`${apiUrl}/saveAll`)
+        .flush('boom', { status: 500, statusText: 'Server Error' });
+
+      expect(error?.status).toBe(500);
+      expect(service.allCategories()).toEqual(mockCategories);
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { TitleCasePipe } from '@angular/common';
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DashboardService } from '../../../dashboards/dashboard.service';
 import { AccountFormComponent } from '../../../settings/account/account-form/account-form.component';
 import { AccountService } from '../../../settings/account/account.service';
 import { CategoryFormComponent } from '../../../settings/category/category-form/category-form.component';
@@ -8,7 +9,6 @@ import { CategoryService } from '../../../settings/category/category.service';
 import { PaymentMethodFormComponent } from '../../../settings/payment-method/payment-method-form/payment-method-form.component';
 import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
-import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
 import { SelectLoopDirective } from '../../../shared/directives/select-loop.directive';
 import { ModalComponent } from '../../../shared/modal/modal.component';
 import { Transaction } from '../../transaction.model';
@@ -19,7 +19,6 @@ import { TransactionService } from '../../transaction.service';
     ReactiveFormsModule,
     SelectLoopDirective,
     TitleCasePipe,
-    OpenDialogDirective,
     PaymentMethodFormComponent,
     AccountFormComponent,
     CategoryFormComponent,
@@ -30,11 +29,12 @@ import { TransactionService } from '../../transaction.service';
 })
 export class TransactionFormComponent implements OnInit {
   protected transactionService = inject(TransactionService);
-  private accountService = inject(AccountService);
-  private paymentMethodsService = inject(PaymentMethodService);
-  private categoryService = inject(CategoryService);
-  private myFormBuilder = inject(FormBuilder);
-  private toastService = inject(ToastService);
+  private readonly accountService = inject(AccountService);
+  private readonly paymentMethodsService = inject(PaymentMethodService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly dashboardService = inject(DashboardService);
+  private readonly myFormBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   protected accounts = this.accountService.activeAccounts;
   protected paymentMethods = this.paymentMethodsService.activePaymentMethods;
@@ -49,6 +49,12 @@ export class TransactionFormComponent implements OnInit {
 
   protected defaultMonth: string = '';
   protected defaultYear: number = 0;
+
+  protected selectedAccount = signal<string>('');
+
+  @ViewChild('addPaymentMethod') modalComponentPayment!: ModalComponent;
+  @ViewChild('addAccount') modalComponentAccount!: ModalComponent;
+  @ViewChild('addCategory') modalComponentCategory!: ModalComponent;
 
   constructor() {
     effect(() => {
@@ -92,6 +98,16 @@ export class TransactionFormComponent implements OnInit {
       categoryId: ['', Validators.required],
       paymentMethodId: ['', Validators.required],
     });
+  }
+
+  protected onChangeSelect(event: Event, type: 'account' | 'category' | 'paymentMethod') {
+    const select = event.target as HTMLSelectElement;
+
+    if (select.value == 'add') {
+      if (type == 'account') this.modalComponentAccount.open();
+      if (type == 'category') this.modalComponentCategory.open();
+      if (type == 'paymentMethod') this.modalComponentPayment.open();
+    }
   }
 
   protected onSubmit(): void {
@@ -162,13 +178,13 @@ export class TransactionFormComponent implements OnInit {
   protected readonly Number = Number;
 
   protected generateRecurrent(month: number, year: number): void {
-    const accountSelected = this.transactionService.selectedAccountIdFilter();
-    if (month && year && year.toString().length === 4) {
+    const accountSelected = this.dashboardService.selectedAccountId();
+    if (month && year?.toString().length === 4) {
       const totalAvant = this.transactionService.allTransactionsSignal().length;
 
       this.transactionService.generateRecurrentTransactions(month, year).subscribe({
         next: () => {
-          this.transactionService.selectedAccountIdFilter.set(accountSelected);
+          this.dashboardService.selectedAccountId.set(accountSelected);
           const totalApres = this.transactionService.allTransactionsSignal().length;
 
           const nbCreees = totalApres - totalAvant;

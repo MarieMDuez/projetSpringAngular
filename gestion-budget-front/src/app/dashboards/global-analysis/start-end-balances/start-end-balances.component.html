@@ -1,0 +1,15 @@
+<div class="balances-container">
+
+    @if (startEndBalances(); as balances) {
+    <div class="balances-summary">
+        <div class="balance-card card-start">
+            <span class="balance-title">Solde en début de période</span>
+            <span class="balance-amount">{{ balances.startBalance | number:'1.2-2' }} €</span>
+        </div>
+        <div class="balance-card card-end">
+            <span class="balance-title">Solde en fin de période</span>
+            <span class="balance-amount">{{ balances.endBalance | number:'1.2-2' }} €</span>
+        </div>
+    </div>
+    }
+</div>

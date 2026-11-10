@@ -21,8 +21,8 @@ import { PaymentMethodService } from '../payment-method.service';
   styleUrl: './payment-method-list.component.scss',
 })
 export class PaymentMethodListComponent {
-  private paymentMethodService = inject(PaymentMethodService);
-  private toastService = inject(ToastService);
+  private readonly paymentMethodService = inject(PaymentMethodService);
+  private readonly toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
   protected paymentMethodToDelete = signal<PaymentMethod | null>(null);
@@ -64,8 +64,8 @@ export class PaymentMethodListComponent {
 
     moveItemInArray(listeModifiable, event.previousIndex, event.currentIndex);
 
-    const listeMiseAJour = listeModifiable.map((category, index) => ({
-      ...category,
+    const listeMiseAJour = listeModifiable.map((paymentMethod, index) => ({
+      ...paymentMethod,
       position: index,
     }));
     this.paymentMethodService.saveAll(listeMiseAJour).subscribe();
@@ -105,5 +105,38 @@ export class PaymentMethodListComponent {
     } else {
       this.paymentMethodToSetActive.set(null);
     }
+  }
+
+  moveUp(pm: PaymentMethod) {
+    const listeModifiable = [...this.paymentMethods()];
+
+    const idx = this.paymentMethods().findIndex((item) => item.id === pm.id);
+    if (idx <= 0) return;
+
+    const currentItem = listeModifiable[idx];
+    const previousItem = listeModifiable[idx - 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx - 1] = { ...currentItem, position: previousItem.position };
+    listeModifiable[idx] = { ...previousItem, position: currentPosition };
+
+    this.paymentMethodService.saveAll(listeModifiable).subscribe();
+  }
+  moveDown(pm: PaymentMethod) {
+    const listeModifiable = [...this.paymentMethods()];
+
+    const idx = this.paymentMethods().findIndex((item) => item.id === pm.id);
+    if (idx === -1 || idx >= listeModifiable.length - 1) return;
+
+    const currentItem = listeModifiable[idx];
+    const nextItem = listeModifiable[idx + 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx] = { ...nextItem, position: nextItem.position };
+    listeModifiable[idx + 1] = { ...currentItem, position: currentPosition };
+
+    this.paymentMethodService.saveAll(listeModifiable).subscribe();
   }
 }

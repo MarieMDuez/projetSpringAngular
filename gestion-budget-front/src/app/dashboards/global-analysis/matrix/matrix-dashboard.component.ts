@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../../settings/account/account.service';
 import { TransactionService } from '../../../transaction/transaction.service';
@@ -13,7 +13,7 @@ import { MatrixDashboardDto, PaymentMethodRowDto } from './matrix-dashboard.mode
   templateUrl: './matrix-dashboard.component.html',
   styleUrl: './matrix-dashboard.component.scss',
 })
-export class MatrixDashboardComponent implements OnInit {
+export class MatrixDashboardComponent {
   protected dashboardService = inject(DashboardService);
   protected accountService = inject(AccountService);
   protected transactionService = inject(TransactionService);
@@ -32,22 +32,16 @@ export class MatrixDashboardComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const account = this.transactionService.selectedAccountIdFilter();
-      const year = this.dashboardService.selectedYear();
-      const isChecked = this.dashboardService.isCheckedFilter();
-
-      this.loadMatrixData(account, year, isChecked);
+      this.loadMatrixData();
     });
   }
 
-  ngOnInit(): void {}
-
-  private loadMatrixData(accountId: number | null, year: number, isChecked: boolean | null): void {
+  private loadMatrixData(): void {
     this.isLoading.set(true);
 
-    this.dashboardService.getMatrix(accountId, year, isChecked).subscribe({
+    this.dashboardService.getMatrix().subscribe({
       next: (data) => {
-        if (data && data.rows) {
+        if (data?.rows) {
           data.rows.forEach((row: PaymentMethodRowDto) => {
             row.isExpanded = false;
           });
@@ -69,7 +63,7 @@ export class MatrixDashboardComponent implements OnInit {
     const targetState = this.isMatrixAllExpanded();
     const currentData = this.matrixData();
 
-    if (currentData && currentData.rows) {
+    if (currentData?.rows) {
       currentData.rows.forEach((row: PaymentMethodRowDto) => {
         row.isExpanded = targetState;
       });

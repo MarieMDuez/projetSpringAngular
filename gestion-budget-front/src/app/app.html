@@ -2,20 +2,33 @@
   <div class="header-brand">
     <span class="brand-logo">💰</span>
     <h1 class="brand-title">Gestion de Compte</h1>
-    <span class="brand-tag">v2</span>
+    <span class="brand-tag">v3</span>
   </div>
+  <button type="button" class="btn-icon darkmode" (click)="themeService.toggleTheme()" title="Changer de thème">
+    {{ themeService.isDarkMode() ? '☀️' : '🌙' }}
+  </button>
+  <button type="button" class="burger-button" (click)="toggleMenu()" [class.open]="isMenuOpen()"
+    aria-label="Menu principal">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-  <nav class="app-nav">
-    <a routerLink="/" routerLinkActive="active" class="nav-link">
+  <nav class="app-nav" [class.menu-mobile-open]="isMenuOpen()">
+    <a routerLink="/" routerLinkActive="active-link" class="nav-link" [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeMenu()">
       Résumé
     </a>
-    <a routerLink="/transactions" routerLinkActive="active" class="nav-link">
+    <a routerLink="/projected-budget" routerLinkActive="active-link" class="nav-link" (click)="closeMenu()">
+      Budget prévisionnel
+    </a>
+    <a routerLink="/transactions" routerLinkActive="active-link" class="nav-link" (click)="closeMenu()">
       Transactions
     </a>
-    <a routerLink="/global-analysis" routerLinkActive="active" class="nav-link">
+    <a routerLink="/global-analysis" routerLinkActive="active-link" class="nav-link" (click)="closeMenu()">
       Analyse des comptes
     </a>
-    <a routerLink="/settings" routerLinkActive="active" class="nav-link">
+    <a routerLink="/settings" routerLinkActive="active-link" class="nav-link" (click)="closeMenu()">
       Configuration
     </a>
   </nav>
@@ -24,7 +37,9 @@
 <main class="app-content">
   <router-outlet />
 </main>
+
 <app-toast-container />
+
 <footer class="app-footer">
   <p>&copy; 2026 - Tous droits réservés.</p>
 </footer>

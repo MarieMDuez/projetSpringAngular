@@ -31,3 +31,28 @@
   height: 34px;
   padding: 0 1rem;
 }
+.custom-date-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.custom-date-container input[type='date'] {
+  width: 100%;
+  /* Permet la sélection et le copier-coller textuel normal au clavier */
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Force l'affichage propre et stylisé du bouton calendrier natif */
+.custom-date-container input[type='date']::-webkit-calendar-picker-indicator {
+  background-color: transparent;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 1.1rem;
+  transition: transform 0.1s ease;
+}
+
+.custom-date-container input[type='date']::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.1);
+}

@@ -5,7 +5,7 @@
         <label for="categoryLabel">Nom de la catégorie</label>
         <input id="categoryLabel" type="text" formControlName="label" placeholder="Ex: Loyer, Électricité, Courses..."
             autofocus>
-        @if (categoryForm.get('label')?.touched && categoryForm.get('label')?.invalid) {
+        @if (categoryForm.get('label')?.dirty && categoryForm.get('label')?.invalid) {
         <small class="error-text">Obligatoire (3 car. min)</small>
         }
     </div>

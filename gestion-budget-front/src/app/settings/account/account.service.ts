@@ -8,10 +8,10 @@ import { Account } from './account.model';
   providedIn: 'root',
 })
 export class AccountService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/account`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/account`;
 
-  private allAccountsSignal = signal<Account[]>([]);
+  private readonly allAccountsSignal = signal<Account[]>([]);
   public editingAccount = signal<Account | null>(null);
 
   public allAccounts = computed(() => this.allAccountsSignal());

@@ -20,59 +20,59 @@ import com.gestionCompte.apirest.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/categories") 
+@RequestMapping("/api/categories")
 @CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class CategoryController {
-	
+
 	private final CategoryService categoryService;
-	
-	
+
+
 	  @GetMapping
 	    public ResponseEntity<List<Category>> getAllCategories() {
 	        List<Category> categories = categoryService.getAllCategories();
-	        return ResponseEntity.ok(categories); 
-	    }
-	  
-	  @GetMapping("/activ") 
-	    public ResponseEntity<List<Category>> getAllActivCategories() {
-	        List<Category> categories = categoryService.getAllActivCategories();
-	        return ResponseEntity.ok(categories); 
+	        return ResponseEntity.ok(categories);
 	    }
 
-	    @GetMapping("/{id}") 
+	  @GetMapping("/activ")
+	    public ResponseEntity<List<Category>> getAllActivCategories() {
+	        List<Category> categories = categoryService.getAllActiveCategories();
+	        return ResponseEntity.ok(categories);
+	    }
+
+	    @GetMapping("/{id}")
 	    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
 	        Category category = categoryService.getCategoryById(id);
-	        return ResponseEntity.ok(category); 
+	        return ResponseEntity.ok(category);
 	    }
 	    @PostMapping
 	    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
 	        Category createdCategory = categoryService.createCategory(category);
 	        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
 	    }
-	    
+
 	    @PostMapping("/saveAll")
 	    public ResponseEntity<List<Category>> saveAll(@RequestBody List<Category> categories) {
 	        List<Category> categoriesSaved = categoryService.saveAll(categories);
 	        return ResponseEntity.ok(categoriesSaved);
 	    }
-	    
-	    @PutMapping("/{id}") 
+
+	    @PutMapping("/{id}")
 	    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
 	        Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
-	        return ResponseEntity.ok(updatedCategory); 
+	        return ResponseEntity.ok(updatedCategory);
 	    }
 
-	    @DeleteMapping("/{id}") 
+	    @DeleteMapping("/{id}")
 	    public ResponseEntity<Boolean> deleteCategory(@PathVariable Long id) {
 	    	boolean isHardDeleted = categoryService.deleteCategory(id);
 	    	return ResponseEntity.ok(isHardDeleted);
 	    }
-	    @PutMapping("/{id}/set-active") 
+	    @PutMapping("/{id}/set-active")
 	    public ResponseEntity<Category> setActiveCategory(@PathVariable Long id) {
 	    	Category updatedCategory = categoryService.setActiveCategory(id);
-	        return ResponseEntity.ok(updatedCategory); 
+	        return ResponseEntity.ok(updatedCategory);
 	    }
-	    
+
 
 }

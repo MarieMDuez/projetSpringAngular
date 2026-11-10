@@ -2,15 +2,16 @@ package com.gestionCompte.apirest.services;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionCompte.apirest.exception.ErrorMessages;
+import com.gestionCompte.apirest.exception.ResourceAlreadyExistsException;
+import com.gestionCompte.apirest.exception.ResourceNotFoundException;
 import com.gestionCompte.apirest.model.Category;
 import com.gestionCompte.apirest.repository.CategoryRepository;
 import com.gestionCompte.apirest.repository.TransactionRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,9 +20,9 @@ public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
 	private final TransactionRepository transactionRepository;
-	
-	
-	public List<Category> getAllActivCategories() {
+
+
+	public List<Category> getAllActiveCategories() {
 		return categoryRepository.findByIsActiveTrueOrderByPositionAsc();
 	}
 	public List<Category> getAllCategories() {
@@ -30,28 +31,28 @@ public class CategoryService {
 
 	public Category getCategoryById(Long id) {
 		return categoryRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
+				() -> new ResourceNotFoundException( ErrorMessages.CATEGORY_NOT_FOUND + id));
 	}
 
 	public Category createCategory(Category category) {
 		String cleanedLabel = category.getLabel().trim().replaceAll("\\s+", " ");
 		category.setLabel(cleanedLabel);
 		if(categoryRepository.existsByLabelIgnoreCase(category.getLabel())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom existe déjà !");
+			throw new ResourceAlreadyExistsException(ErrorMessages.CATEGORY_ALREADY_EXISTS);
 		}
 		return categoryRepository.save(category);
 	}
 
 	public Category updateCategory(Long id, Category categoryDetails) {
 		Category existingCategory = categoryRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
-		
+				() -> new ResourceNotFoundException( ErrorMessages.CATEGORY_NOT_FOUND  + id));
+
 		String cleanedLabel = categoryDetails.getLabel().trim().replaceAll("\\s+", " ");
 		categoryDetails.setLabel(cleanedLabel);
-		
-		if (!existingCategory.getLabel().equalsIgnoreCase(categoryDetails.getLabel()) 
+
+		if (!existingCategory.getLabel().equalsIgnoreCase(categoryDetails.getLabel())
 		        && categoryRepository.existsByLabelIgnoreCase(categoryDetails.getLabel())) {
-		        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ce nom de compte existe déjà !");
+		        throw new ResourceAlreadyExistsException(ErrorMessages.CATEGORY_ALREADY_EXISTS);
 		    }
 
 		existingCategory.setLabel(categoryDetails.getLabel());
@@ -61,7 +62,7 @@ public class CategoryService {
 
 	public boolean deleteCategory(Long id) {
 		Category category = categoryRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id));
+				() -> new ResourceNotFoundException( ErrorMessages.CATEGORY_NOT_FOUND + id));
 		boolean hasTransactions = transactionRepository.existsByCategoryId(id);
 
 		if (hasTransactions) {
@@ -77,11 +78,11 @@ public class CategoryService {
 	public List<Category> saveAll(List<Category> categories) {
 	    return categoryRepository.saveAll(categories);
 	}
-	
-	
+
+
 	public Category setActiveCategory(Long categoryId) {
 		Category category = categoryRepository.findById(categoryId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+				.orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.CATEGORY_NOT_FOUND + categoryId));
 
 		category.setActive(true);
 

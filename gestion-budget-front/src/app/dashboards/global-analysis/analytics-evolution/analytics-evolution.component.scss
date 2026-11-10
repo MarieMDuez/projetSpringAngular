@@ -1,0 +1,72 @@
+@use 'mixins' as *;
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  -webkit-overflow-scrolling: touch;
+}
+
+.evolution-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+
+  thead {
+    display: table-header-group;
+    background-color: var(--bg-tertiary);
+
+    tr {
+      display: table-row;
+    }
+    th {
+      display: table-cell;
+      padding: 0.85rem 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border-primary);
+      text-align: left;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    display: table-row-group;
+
+    tr {
+      display: table-row;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border-primary);
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: var(--bg-primary);
+      }
+    }
+    td {
+      display: table-cell;
+      padding: 0.85rem 1rem;
+      white-space: nowrap;
+      vertical-align: middle;
+      font-variant-numeric: tabular-nums;
+
+      &.month-label {
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+}

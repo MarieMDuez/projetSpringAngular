@@ -10,8 +10,8 @@ export interface Transaction {
   parentTransactionId: number | null;
 
   account: { id: number };
-  category: { id: number };
-  paymentMethod: { id: number };
+  category: { id: number; label?: string };
+  paymentMethod: { id: number; label?: string };
 }
 
 export interface TransactionFilters {

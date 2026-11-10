@@ -8,17 +8,24 @@
     <div class="form-grid-inline">
 
         <div class="form-group-tracker col-date">
-            <label>Date (A / M / J)</label>
+            <!-- 1. Le titre textuel reste pour le visuel humain -->
+            <span class="filter-group-title">Date (A / M / J)</span>
+
             <div class="date-filter-group">
                 <div class="input-wrapper">
+                    <!-- 2. Vrai label connecté pour l'Année (masqué visuellement) -->
+                    <label for="filterYear" class="visually-hidden">Filtrer par année</label>
                     <input id="filterYear" formControlName="year" type="number" min="2000" max="2200"
                         placeholder="Année" class="text-center" />
                     @if (filterForm.get('year')?.value) {
                     <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('year')"
-                        title="Effacer">✖</button>
+                        title="Effacer l'année">✖</button>
                     }
                 </div>
+
                 <div class="input-wrapper">
+                    <!-- 3. Vrai label connecté pour le Mois (masqué visuellement) -> Règle le problème du select -->
+                    <label for="filterMonth" class="visually-hidden">Filtrer par mois</label>
                     <select appSelectLoop id="filterMonth" formControlName="month">
                         <option value="">Tous les mois</option>
                         @for (month of availableMonths; track month.value) {
@@ -27,18 +34,23 @@
                     </select>
                     @if (filterForm.get('month')?.value) {
                     <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('month')"
-                        title="Effacer">✖</button>
+                        title="Effacer le mois">✖</button>
                     }
                 </div>
+
                 <div class="input-wrapper">
+                    <!-- 4. Vrai label connecté pour le Jour (masqué visuellement) -->
+                    <label for="filterDay" class="visually-hidden">Filtrer par jour</label>
                     <input id="filterDay" formControlName="day" type="number" min="1" max="31" placeholder="Jour"
                         class="text-center" />
                     @if (filterForm.get('day')?.value) {
                     <button type="button" class="btn-clear-unit" (click)="clearSingleFilter('day')"
-                        title="Effacer">✖</button>
+                        title="Effacer le jour">✖</button>
                     }
                 </div>
             </div>
+
+
         </div>
 
         <div class="form-group-tracker col-account">
@@ -90,9 +102,9 @@
         </div>
 
         <div class="form-group-tracker col-flux">
-            <label>Type de Flux</label>
+            <label for="type">Type de Flux</label>
             <div class="input-wrapper">
-                <select appSelectLoop formControlName="type">
+                <select id="type" appSelectLoop formControlName="type">
                     <option value="">— Tous les flux —</option>
                     <option value="DEBIT">Dépenses (Débit)</option>
                     <option value="CREDIT">Revenus (Crédit)</option>
@@ -105,9 +117,9 @@
         </div>
 
         <div class="form-group-tracker col-recurrence">
-            <label>Réc.</label>
+            <label for="recurrenceMonths">Réc.</label>
             <div class="input-wrapper">
-                <select appSelectLoop formControlName="recurrenceMonths">
+                <select id="recurrenceMonths" appSelectLoop formControlName="recurrenceMonths">
                     <option value="">Toutes</option>
                     @for (months of transactionService.uniqueRecurrences(); track months) {
                     <option [value]="months">
@@ -124,9 +136,9 @@
         </div>
 
         <div class="form-group-tracker col-pointing">
-            <label>Pointée</label>
+            <label for="isChecked">Pointée</label>
             <div class="input-wrapper">
-                <select appSelectLoop formControlName="isChecked">
+                <select appSelectLoop formControlName="isChecked" id="isChecked">
                     <option value="">Tous</option>
                     <option value="true">Oui</option>
                     <option value="false">Non</option>

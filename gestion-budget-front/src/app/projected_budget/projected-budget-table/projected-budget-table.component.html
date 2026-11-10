@@ -1,0 +1,96 @@
+<div class="budget-table-container">
+    <h3>{{ title() }}</h3>
+    <div class="table-responsive">
+
+        <table (input)="onTableInteraction()" (change)="onTableInteraction()">
+            <thead>
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Moyen de Paiement</th>
+                    <th>Montant Compte (€)</th>
+                    <th>Montant Espèces (€)</th>
+                    <th>Commentaire</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (item of formArray(); track item.id || $index) {
+                <tr>
+                    <td>
+                        <!-- 💡 Label masqué connecté pour la Catégorie -->
+                        <label for="cat-select-{{$index}}" class="visually-hidden">Catégorie ligne {{ $index + 1
+                            }}</label>
+                        <select id="cat-select-{{$index}}" [(ngModel)]="item.category.id">
+                            <option [ngValue]="null">Choisir...</option>
+                            @for (cat of categoriesService.activeCategories(); track cat.id) {
+                            <option [ngValue]="cat.id">{{ cat.label }}</option>
+                            }
+                        </select>
+                    </td>
+
+                    <td>
+                        <!-- 💡 Label masqué connecté pour le Moyen de Paiement -->
+                        <label for="pm-select-{{$index}}" class="visually-hidden">Moyen de paiement ligne {{ $index + 1
+                            }}</label>
+                        <select id="pm-select-{{$index}}" [(ngModel)]="item.paymentMethod.id">
+                            <option [ngValue]="null">Choisir...</option>
+                            @for (pm of paymentMethodsService.activePaymentMethods(); track pm.id) {
+                            <option [ngValue]="pm.id">{{ pm.label }}</option>
+                            }
+                        </select>
+                    </td>
+
+                    <td>
+                        <!-- 💡 Label masqué connecté pour le Montant Compte -->
+                        <label for="account-amount-{{$index}}" class="visually-hidden">Montant compte ligne {{ $index +
+                            1 }}</label>
+                        <input id="account-amount-{{$index}}" type="number" [(ngModel)]="item.accountAmount" min="0"
+                            step="0.01">
+                    </td>
+
+                    <td>
+                        <!-- 💡 Label masqué connecté pour le Montant Espèces -->
+                        <label for="cash-amount-{{$index}}" class="visually-hidden">Montant espèces ligne {{ $index + 1
+                            }}</label>
+                        <input id="cash-amount-{{$index}}" type="number" [(ngModel)]="item.cashAmount" min="0"
+                            step="0.01">
+                    </td>
+
+                    <td>
+                        <!-- 💡 Label masqué connecté pour le Commentaire -->
+                        <label for="comment-{{$index}}" class="visually-hidden">Commentaire ligne {{ $index + 1
+                            }}</label>
+                        <input id="comment-{{$index}}" type="text" [(ngModel)]="item.comment" placeholder="Note...">
+                    </td>
+
+                    <td>
+                        <!-- 💡 Label masqué connecté pour le bouton supprimer -->
+                        <button type="button" (click)="onDelete($index)"
+                            aria-label="Supprimer la ligne {{ $index + 1 }}">❌</button>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="6" class="empty-message">Aucune ligne pour le moment. Cliquez sur le bouton pour
+                        commencer.</td>
+                </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-totals-row">
+                    <td colspan="2" class="total-label">TOTAUX</td>
+                    <td class="total-amount">{{ totalAccount() | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</td>
+                    <td class="total-amount">{{ totalCash() | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</td>
+                    <td colspan="2"></td>
+                </tr>
+                <tr class="category-total-row">
+                    <td colspan="2" class="category-label">TOTAL {{ title()}}</td>
+                    <td colspan="2" class="category-value">{{ globalTableTotal() |
+                        currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <button type="button" class="btn-add" (click)="onAdd()">➕ Ajouter une ligne</button>
+</div>

@@ -18,7 +18,7 @@ import { TransactionService } from '../transaction.service';
 })
 export class TransactionsFilters implements OnInit {
   protected filterForm!: FormGroup;
-  private myFormBuilder = inject(FormBuilder);
+  private readonly myFormBuilder = inject(FormBuilder);
   protected transactionService = inject(TransactionService);
   protected dashboardService = inject(DashboardService);
   protected accountService = inject(AccountService);
@@ -31,7 +31,7 @@ export class TransactionsFilters implements OnInit {
 
   constructor() {
     effect(() => {
-      const serviceAccountId = this.transactionService.selectedAccountIdFilter();
+      const serviceAccountId = this.dashboardService.selectedAccountId();
       this.filterForm?.get('accountId')?.setValue(serviceAccountId ?? '', { emitEvent: true });
     });
   }
@@ -46,7 +46,7 @@ export class TransactionsFilters implements OnInit {
   }
 
   initFilterForm() {
-    const currentAccountId = this.transactionService.selectedAccountIdFilter();
+    const currentAccountId = this.dashboardService.selectedAccountId();
 
     this.filterForm = this.myFormBuilder.group({
       accountId: [currentAccountId !== null ? currentAccountId.toString() : ''],
@@ -63,11 +63,9 @@ export class TransactionsFilters implements OnInit {
   }
 
   setupDynamicFiltering() {
-    const initialAccountId = this.transactionService.selectedAccountIdFilter();
+    const initialAccountId = this.dashboardService.selectedAccountId();
 
-    this.transactionService.selectedAccountIdFilter.set(
-      initialAccountId ? Number(initialAccountId) : null,
-    );
+    this.dashboardService.selectedAccountId.set(initialAccountId ? Number(initialAccountId) : null);
 
     this.transactionService.loadFilteredTransactions(this.filterForm.value).subscribe({
       error: (err) => console.error('Erreur de filtrage', err),
@@ -87,12 +85,7 @@ export class TransactionsFilters implements OnInit {
           }
 
           const accountId = currentFilters?.accountId;
-          this.transactionService.selectedAccountIdFilter.set(accountId ? Number(accountId) : null);
-
-          let activeLimit = currentFilters.limit;
-          if (currentFilters.year || currentFilters.month || Number(currentFilters.limit) === 0) {
-            activeLimit = '';
-          }
+          this.dashboardService.selectedAccountId.set(accountId ? Number(accountId) : null);
 
           const filtersCopy: TransactionFilters = { ...currentFilters };
           if (currentFilters.year || currentFilters.month || Number(currentFilters.limit) === 0) {
@@ -107,7 +100,7 @@ export class TransactionsFilters implements OnInit {
 
           return forkJoin([
             this.transactionService.loadFilteredTransactions(filtersCopy),
-            this.dashboardService.loadBalances(accountId ? Number(accountId) : null),
+            this.dashboardService.loadBalances(),
           ]);
         }),
       )
@@ -129,7 +122,7 @@ export class TransactionsFilters implements OnInit {
       isChecked: '',
       limit: 50,
     });
-    this.transactionService.selectedAccountIdFilter.set(null);
+    this.dashboardService.selectedAccountId.set(null);
 
     this.transactionService.loadFilteredTransactions({ limit: 50 }).subscribe({
       error: (err) => console.error('Erreur de filtrage', err),
@@ -141,7 +134,7 @@ export class TransactionsFilters implements OnInit {
     if (!control) return;
     control.setValue('');
     if (controlName === 'accountId') {
-      this.transactionService.selectedAccountIdFilter.set(null);
+      this.dashboardService.selectedAccountId.set(null);
     }
   }
 

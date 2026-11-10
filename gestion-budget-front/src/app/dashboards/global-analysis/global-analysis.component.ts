@@ -10,6 +10,8 @@ import { AnalyticsEvolutionComponent } from './analytics-evolution/analytics-evo
 import { AnalyticsDashboardComponent } from './analytics/analytics.component';
 import { MatrixMonthlyComponent } from './matrix-monthly/matrix-monthly.component';
 import { MatrixDashboardComponent } from './matrix/matrix-dashboard.component';
+import { AccountType, AccountTypeLabels } from '../../settings/account/account.model';
+import { StartEndBalancesComponent } from './start-end-balances/start-end-balances.component';
 
 @Component({
   selector: 'app-global-analysis',
@@ -19,6 +21,7 @@ import { MatrixDashboardComponent } from './matrix/matrix-dashboard.component';
     AnalyticsEvolutionComponent,
     MatrixDashboardComponent,
     BalancesComponent,
+    StartEndBalancesComponent,
     FormsModule,
     TitleCasePipe,
     RouterLink,
@@ -35,18 +38,28 @@ export class GlobalAnalysisComponent {
   protected isLoading = signal<boolean>(false);
 
   isBalanceExpanded = signal<boolean>(true);
+  isStartEndBalancesExpanded = signal<boolean>(true);
   isAnalyticsExpanded = signal<boolean>(true);
   isMatrixMonthlyExpanded = signal<boolean>(true);
   isEvolutionExpanded = signal<boolean>(true);
   isMatrixExpanded = signal<boolean>(true);
   isAllExpand = signal<boolean>(true);
+  isFilterHide = signal<boolean>(false);
+
+  protected readonly accountTypeLabels = AccountTypeLabels;
+
+  protected readonly accountTypes = Object.values(AccountType);
 
   toggleSection(
-    section: 'balance' | 'analytics' | 'matrix-monthly' | 'evolution' | 'matrix',
+    section:
+      'balance' | 'analytics' | 'matrix-monthly' | 'evolution' | 'matrix' | 'start-end-balances',
   ): void {
     switch (section) {
       case 'balance':
         this.isBalanceExpanded.update((v) => !v);
+        break;
+      case 'start-end-balances':
+        this.isStartEndBalancesExpanded.update((v) => !v);
         break;
       case 'analytics':
         this.isAnalyticsExpanded.update((v) => !v);
@@ -66,10 +79,15 @@ export class GlobalAnalysisComponent {
   protected onAllExpand(): void {
     this.isAllExpand.update((v) => !v);
     this.isBalanceExpanded.set(this.isAllExpand());
+    this.isStartEndBalancesExpanded.set(this.isAllExpand());
     this.isAnalyticsExpanded.set(this.isAllExpand());
     this.isMatrixMonthlyExpanded.set(this.isAllExpand());
     this.isEvolutionExpanded.set(this.isAllExpand());
     this.isMatrixExpanded.set(this.isAllExpand());
+  }
+
+  toggleHideFilter(): void {
+    this.isFilterHide.set(!this.isFilterHide());
   }
 
   protected availableMonths = Array.from({ length: 12 }, (_, i) => ({
@@ -80,10 +98,20 @@ export class GlobalAnalysisComponent {
   protected availableYears = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 3 + i);
 
   protected onAccountChange(accountId: number | null): void {
-    if (this.transactionService.selectedAccountIdFilter() === accountId) {
+    if (this.dashboardService.selectedAccountId() === accountId) {
       return;
     }
-    this.transactionService.selectedAccountIdFilter.set(accountId);
+    if (accountId != null) {
+      this.onTypeChange(null);
+    }
+    this.dashboardService.selectedAccountId.set(accountId);
+  }
+
+  protected onTypeChange(type: AccountType | null): void {
+    if (type != null) {
+      this.onAccountChange(null);
+    }
+    this.dashboardService.accountType.set(type);
   }
 
   protected onMonthChange(event: Event): void {

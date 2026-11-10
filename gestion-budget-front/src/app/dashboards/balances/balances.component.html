@@ -1,27 +1,33 @@
 <div class="balances-container">
+    @if(showAccount()){
     <div class="balances-scope">
         <label for="scopeAccountSelect" class="scope-label">Périmètre des calculs :</label>
         <div class="select-wrapper">
-            <select id="scopeAccountSelect" [ngModel]="transactionService.selectedAccountIdFilter()"
+            <select id="scopeAccountSelect" [ngModel]="dashboardService.selectedAccountId()"
                 (ngModelChange)="onAccountScopeChange($event)" class="scope-select">
-                <option [ngValue]="null">🌍 Tous les comptes bancaires <strong>actifs</strong></option>
+                <option [ngValue]="null">Tous les comptes bancaires actifs</option>
                 @for (acc of accountService.allAccounts(); track acc.id) {
                 <option [ngValue]="acc.id">{{ acc.label }} {{ !acc.isActive ? '(Archivé)' : '' }}</option>
                 }
             </select>
         </div>
     </div>
-
+    }
     @if (currentBalances(); as balances) {
     <div class="balances-summary">
         <div class="balance-card card-real">
             <span class="balance-title">Solde Réel (Pointé)</span>
-            <span class="balance-amount">{{ balances.currentBalance | number:'1.2-2' }} €</span>
+            <span class="balance-amount">{{ balances.currentBalance | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
+            </span>
         </div>
         <div class="balance-card card-projected">
             <span class="balance-title">Solde Prévisionnel</span>
-            <span class="balance-amount">{{ balances.projectedBalance | number:'1.2-2' }} €</span>
+            <span class="balance-amount">{{ balances.projectedBalance | currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
+            </span>
         </div>
     </div>
+    @if(balances.firstNegativeDate){
+    <span class="alert">/!\ Compte à découvert à partir du {{balances.firstNegativeDate | date:'dd-MM-yyyy'}}</span>
+    }
     }
 </div>

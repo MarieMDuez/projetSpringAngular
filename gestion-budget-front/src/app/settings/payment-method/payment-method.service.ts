@@ -8,10 +8,10 @@ import { PaymentMethod } from './payment-method.model';
   providedIn: 'root',
 })
 export class PaymentMethodService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/payment_methods`;
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/payment_methods`;
 
-  private allPaymentMethodsSignal = signal<PaymentMethod[]>([]);
+  private readonly allPaymentMethodsSignal = signal<PaymentMethod[]>([]);
 
   public editingPaymentMethod = signal<PaymentMethod | null>(null);
 

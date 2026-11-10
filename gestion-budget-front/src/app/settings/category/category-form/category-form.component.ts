@@ -1,8 +1,8 @@
-import { Component, effect, inject, OnInit, output, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
-import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 
 @Component({
   selector: 'app-category-form',
@@ -11,8 +11,8 @@ import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
   styleUrl: './category-form.component.scss',
 })
 export class CategoryFormComponent implements OnInit {
-  private myFormBuilder = inject(FormBuilder);
-  private toastService = inject(ToastService);
+  private readonly myFormBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
   protected categoryForm!: FormGroup;
 
   protected categoryService = inject(CategoryService);
@@ -33,6 +33,7 @@ export class CategoryFormComponent implements OnInit {
   initForm() {
     this.categoryForm = this.myFormBuilder.group({
       label: ['', [Validators.required, Validators.minLength(3)]],
+      position: [null],
     });
   }
 
@@ -40,7 +41,7 @@ export class CategoryFormComponent implements OnInit {
     if (this.categoryForm.invalid) {
       return;
     }
-    const formData = this.categoryForm.value;
+    const formData = this.categoryForm.getRawValue();
     const currentId = this.categoryService.editingCategory()?.id;
     const cat: Category = {
       label: formData.label,
@@ -100,6 +101,7 @@ export class CategoryFormComponent implements OnInit {
     this.categoryForm.patchValue({
       label: category.label,
       isActive: category.isActive,
+      position: category.position,
     });
   }
 

@@ -2,9 +2,11 @@ package com.gestionCompte.apirest.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 import com.gestionCompte.apirest.model.TransactionType;
-import lombok.Data;
+
 import lombok.AllArgsConstructor;
+import lombok.Data;
 
 @Data
 public class AnalyticsDashboardDto {

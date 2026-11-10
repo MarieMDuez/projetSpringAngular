@@ -1,0 +1,115 @@
+<app-projected-budget-filter></app-projected-budget-filter>
+
+<div class="general-container" [class.sidebar-closed]="!isSidebarVisible()">
+
+
+    <section class="table-container">
+
+        <div class="toggle-suggestion">
+            <button type="button" class="btn-icon" (click)="toggleSidebar()">
+                {{ isSidebarVisible() ? ' Masquer les suggestions' : ' Afficher les suggestions' }}
+            </button>
+        </div>
+
+        <div class="tables-grid">
+            <div id="incomes-list" cdkDropList [cdkDropListData]="incomes()"
+                (cdkDropListDropped)="onDrop($event, CategoryType.INCOME)">
+                <app-projected-budget-table title="Revenus" [formArray]="incomes()"
+                    (addRequested)="addNewLine(CategoryType.INCOME)"
+                    (deletedRequested)="deleteLine(CategoryType.INCOME, $event)" (tableUpdated)="onItemChanged()">
+                </app-projected-budget-table>
+            </div>
+
+            <div id="savings-list" cdkDropList [cdkDropListData]="savings()"
+                (cdkDropListDropped)="onDrop($event, CategoryType.SAVINGS)">
+                <app-projected-budget-table title="Epargne" [formArray]="savings()"
+                    (addRequested)="addNewLine(CategoryType.SAVINGS)"
+                    (deletedRequested)="deleteLine(CategoryType.SAVINGS, $event)" (tableUpdated)="onItemChanged()">
+                </app-projected-budget-table>
+            </div>
+
+            <div id="fixedExpenses-list" cdkDropList [cdkDropListData]="fixedExpenses()"
+                (cdkDropListDropped)="onDrop($event, CategoryType.FIXED_EXPENSE)">
+                <app-projected-budget-table title="Charges Fixes" [formArray]="fixedExpenses()"
+                    (addRequested)="addNewLine(CategoryType.FIXED_EXPENSE)"
+                    (deletedRequested)="deleteLine(CategoryType.FIXED_EXPENSE, $event)"
+                    (tableUpdated)="onItemChanged()">
+                </app-projected-budget-table>
+            </div>
+
+            <div id="variableExpenses-list" cdkDropList [cdkDropListData]="variableExpenses()"
+                (cdkDropListDropped)="onDrop($event, CategoryType.VARIABLE_EXPENSE)">
+                <app-projected-budget-table title="Charges variables" [formArray]="variableExpenses()"
+                    (addRequested)="addNewLine(CategoryType.VARIABLE_EXPENSE)"
+                    (deletedRequested)="deleteLine(CategoryType.VARIABLE_EXPENSE, $event)"
+                    (tableUpdated)="onItemChanged()">
+                </app-projected-budget-table>
+            </div>
+        </div>
+
+        <div class="budget-summary-area">
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span class="summary-label">Total Revenus</span>
+                    <span class="summary-value">{{ totalIncomes() }} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Charges Fixes</span>
+                    <span class="summary-value">{{ totalFixedExpenses() }} €</span>
+                </div>
+                <div class="summary-row highlight-row">
+                    <span class="summary-label">Reste à vivre</span>
+                    <span class="summary-value" [class.positive]="restToLive() >= 0"
+                        [class.negative]="restToLive() < 0">
+                        {{ restToLive() }} €
+                    </span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span class="summary-label">Total Épargne</span>
+                    <span class="summary-value">{{ totalSavings() }} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Charges Variables</span>
+                    <span class="summary-value">{{ totalVariableExpenses() }} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Solde Global</span>
+                    <span class="summary-value" [class.positive]="balance() >= 0" [class.negative]="balance() < 0">
+                        {{ balance() }} €
+                    </span>
+                </div>
+                <div class="summary-row highlight-row cash-row">
+                    <span class="summary-label">💵 Espèces à retirer</span>
+                    <span class="summary-value">{{ cashToGet() }} €</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-budget-actions">
+            <button type="button" class="btn-danger-outline" [appOpenDialog]="deleteProjectedBudgetModal">
+                Supprimer ce mois budgétaire
+            </button>
+
+            <button type="button" class="btn-success" (click)="onSubmit()">
+                Enregistrer le budget
+            </button>
+        </div>
+    </section>
+
+    @if (isSidebarVisible()) {
+    <aside class="item-container">
+        <app-projected-budget-toolbox (dispatchRequested)="onAddTransactionToBudget($event)">
+        </app-projected-budget-toolbox>
+    </aside>
+    }
+</div>
+
+<app-modal #deleteProjectedBudgetModal title="Suppression de budget" options="accept-reject" type="danger"
+    confirmText="Confirmer" cancelText="Annuler" (resultAction)="onDeletePeriod()">
+    <p>
+        Êtes-vous sûr de vouloir supprimer entièrement le budget de ce mois ?
+    </p>
+</app-modal>

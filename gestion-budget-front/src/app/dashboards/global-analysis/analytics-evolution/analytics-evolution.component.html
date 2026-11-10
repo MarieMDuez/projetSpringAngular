@@ -1,57 +1,32 @@
-<div class="evolution-container">
-    <header class="filters-header">
-        <h2 class="dashboard-title">Évolution Chronologique Annuelle</h2>
-    </header>
+<section class="evolution-card table-card">
+    <h3 class="card-title"> Bilan Mensuel Détaillé ({{ dashboardService.selectedYear() }})</h3>
 
-    @if (evolutionData()) {
-    <main class="evolution-content">
 
-        <section class="evolution-card chart-card">
-            <h3 class="card-title"> Courbe des Flux Financiers</h3>
-            <div class="chart-wrapper">
-                <apx-chart [series]="globalSeries()" [colors]="chartColors"
-                    [chart]="{ type: 'area', height: 350, width: '100%', toolbar: { show: false }, zoom: { enabled: false } }"
-                    [stroke]="{ curve: 'smooth', width: 3 }" [xaxis]="{ categories: xAxisMonths }"
-                    [dataLabels]="{ enabled: false }" [tooltip]="{ shared: true }" width="100%">
-                </apx-chart>
-            </div>
-        </section>
+    <div class="table-responsive">
+        <table class="evolution-table">
+            <thead>
+                <tr>
+                    <th>Mois</th>
+                    <th class="text-right">Dépenses (-)</th>
+                    <th class="text-right">Revenus (+)</th>
+                    <th class="text-right">Résultat Net</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (item of evolutionData()?.globalEvolution; track item.month) {
+                @let netResult = item.credits - item.debits;
 
-        <section class="evolution-card table-card">
-            <h3 class="card-title"> Bilan Mensuel Détaillé ({{ dashboardService.selectedYear() }})</h3>
-
-            <table class="evolution-table">
-                <thead>
-                    <tr>
-                        <th>Mois</th>
-                        <th class="text-right">Dépenses (-)</th>
-                        <th class="text-right">Revenus (+)</th>
-                        <th class="text-right">Résultat Net</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (item of evolutionData()?.globalEvolution; track item.month) {
-                    @let netResult = item.credits - item.debits;
-
-                    <tr>
-                        <td class="month-label">{{ xAxisMonths[item.month - 1] }}</td>
-                        <td class="text-right amount-debit">{{ item.debits | number:'1.2-2' }} €</td>
-                        <td class="text-right amount-credit">{{ item.credits | number:'1.2-2' }} €</td>
-                        <td class="text-right amount-net" [class.positive]="netResult >= 0"
-                            [class.negative]="netResult < 0">
-                            {{ netResult | number:'1.2-2' }} €
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-        </section>
-
-    </main>
-    } @else {
-    <div class="loading-state">
-        <p>Calcul des graphiques et des bilans annuels...</p>
+                <tr>
+                    <td class="month-label">{{ xAxisMonths[item.month - 1] }}</td>
+                    <td class="text-right amount-debit">{{ item.debits | number:'1.2-2' }} €</td>
+                    <td class="text-right amount-credit">{{ item.credits | number:'1.2-2' }} €</td>
+                    <td class="text-right amount-net" [class.positive]="netResult >= 0"
+                        [class.negative]="netResult < 0">
+                        {{ netResult | number:'1.2-2' }} €
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
     </div>
-    }
-
-</div>
+</section>

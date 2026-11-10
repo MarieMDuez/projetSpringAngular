@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gestionCompte.apirest.model.AccountType;
 import com.gestionCompte.apirest.model.Transaction;
 import com.gestionCompte.apirest.services.TransactionService;
 
@@ -24,25 +25,25 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/transactions")
-@CrossOrigin(origins = "http://localhost:4200") 
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class TransactionController {
 
 	private final TransactionService transactionService;
 
-	@GetMapping 
+	@GetMapping
 	public ResponseEntity<List<Transaction>> getAllTransactions() {
 		List<Transaction> transactions = transactionService.getAllTransactions();
-		return ResponseEntity.ok(transactions); 
+		return ResponseEntity.ok(transactions);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
 		Transaction transaction = transactionService.getTransactionById(id);
-		return ResponseEntity.ok(transaction); 
+		return ResponseEntity.ok(transaction);
 	}
 
-	@PostMapping 
+	@PostMapping
 	public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction) {
 		Transaction createdTransaction = transactionService.createTransaction(transaction);
 		return new ResponseEntity<>(createdTransaction, HttpStatus.CREATED);
@@ -54,7 +55,7 @@ public class TransactionController {
 		return ResponseEntity.ok(updated);
 	}
 
-	@DeleteMapping("/{id}") 
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
 		transactionService.deleteTransaction(id);
 		return ResponseEntity.noContent().build();
@@ -63,28 +64,30 @@ public class TransactionController {
 	@GetMapping("/filter")
 	public ResponseEntity<List<Transaction>> getTransactions(@RequestParam(required = false) Long accountId,
 			@RequestParam(required = false) Long categoryId, @RequestParam(required = false) Long paymentMethodId,
-			@RequestParam(required = false) Integer day, @RequestParam(required = false) Integer month, 
+			@RequestParam(required = false) Integer day, @RequestParam(required = false) Integer month,
 			@RequestParam(required = false) Integer year,
 			@RequestParam(required = false) BigDecimal minAmount, @RequestParam(required = false) BigDecimal maxAmount,
 			@RequestParam(required = false) String type, @RequestParam(required = false) Integer recurrenceMonths,
-			@RequestParam(required = false) Boolean isChecked, @RequestParam(required = false) Integer limit) {
+			@RequestParam(required = false) Boolean isChecked, @RequestParam(required = false) Integer limit,
+			@RequestParam(required = false) Boolean isAlertTriggered,
+			@RequestParam(required =false) AccountType accountType) {
 
 		List<Transaction> transactions = transactionService.getFilteredTransactions(accountId, categoryId,
-				paymentMethodId, day, month, year, minAmount, maxAmount, type, isChecked, recurrenceMonths, limit);
+				paymentMethodId, day, month, year, minAmount, maxAmount, type, isChecked, recurrenceMonths, limit, accountType);
 
 		return ResponseEntity.ok(transactions);
 	}
-	
+
 	@GetMapping("/recurrences/unique")
 	public ResponseEntity<List<Integer>> getUniqueRecurrences() {
 	    List<Integer> recurrences = transactionService.getUniqueRecurrenceMonths();
 	    return ResponseEntity.ok(recurrences);
 	}
-	
+
 	@PostMapping("/generate-recurrents")
 	public ResponseEntity<Void> generateRecurrents(@RequestParam int month, @RequestParam int year) {
 		transactionService.generateRecurrentTransactions(month, year);
-		return ResponseEntity.ok().build(); 
+		return ResponseEntity.ok().build();
 	}
 
 }

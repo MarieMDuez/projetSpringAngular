@@ -12,8 +12,8 @@ import { PaymentMethodService } from '../payment-method.service';
 })
 export class PaymentMethodFormComponent implements OnInit {
   protected paymentMethodService = inject(PaymentMethodService);
-  private myFormBuilder = inject(FormBuilder);
-  private toastService = inject(ToastService);
+  private readonly myFormBuilder = inject(FormBuilder);
+  private readonly toastService = inject(ToastService);
 
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
 
@@ -32,7 +32,13 @@ export class PaymentMethodFormComponent implements OnInit {
   }
   initForm() {
     this.paymentMethodForm = this.myFormBuilder.group({
-      label: ['', [Validators.required, Validators.minLength(3)]],
+      label: [
+        '',
+        {
+          validators: [Validators.required, Validators.minLength(3)],
+        },
+      ],
+      position: [null],
     });
   }
 
@@ -40,6 +46,7 @@ export class PaymentMethodFormComponent implements OnInit {
     this.paymentMethodForm.patchValue({
       label: paymentMethod.label,
       isActive: paymentMethod.isActive,
+      position: paymentMethod.position,
     });
   }
 
@@ -48,7 +55,7 @@ export class PaymentMethodFormComponent implements OnInit {
       return;
     }
 
-    const formData = this.paymentMethodForm.value;
+    const formData = this.paymentMethodForm.getRawValue();
     const currentId = this.paymentMethodService.editingPaymentMethod()?.id;
     const paymentMethod: PaymentMethod = {
       label: formData.label,

@@ -21,52 +21,52 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/account")
-@CrossOrigin(origins = "http://localhost:4200") 
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 public class AccountController {
 
 	private final AccountService accountService;
-	
+
 	@GetMapping("/default")
 	public ResponseEntity<Account> getDefaultAccount() {
 	    return accountService.getDefaultAccount()
 	        .map(ResponseEntity::ok)
-	        .orElse(ResponseEntity.noContent().build()); 
+	        .orElse(ResponseEntity.noContent().build());
 	}
-	
-	@GetMapping 
+
+	@GetMapping
     public ResponseEntity<List<Account>> getAllAccounts() {
         List<Account> accounts = accountService.getAllAccounts();
-        return ResponseEntity.ok(accounts); 
+        return ResponseEntity.ok(accounts);
     }
 
-    @GetMapping("/{id}") 
+    @GetMapping("/{id}")
     public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
-        Account Account = accountService.getAccountById(id);
-        return ResponseEntity.ok(Account); 
+        Account account = accountService.getAccountById(id);
+        return ResponseEntity.ok(account);
     }
     @PostMapping
-    public ResponseEntity<Account> createAccount(@RequestBody Account Account) {
-        Account createdAccount = accountService.createAccount(Account);
-        return new ResponseEntity<>(createdAccount, HttpStatus.CREATED); 
+    public ResponseEntity<Account> createAccount(@RequestBody Account account) {
+        Account createdAccount = accountService.createAccount(account);
+        return new ResponseEntity<>(createdAccount, HttpStatus.CREATED);
     }
-    
+
     @PostMapping("/saveAll")
     public ResponseEntity<List<Account>> saveAll(@RequestBody List<Account> accounts) {
         List<Account> accountsSaved = accountService.saveAll(accounts);
         return ResponseEntity.ok(accountsSaved);
     }
-    
-    @PutMapping("/{id}") 
-    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account AccountDetails) {
-        Account updatedAccount = accountService.updateAccount(id, AccountDetails);
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @RequestBody Account accountDetails) {
+        Account updatedAccount = accountService.updateAccount(id, accountDetails);
         return ResponseEntity.ok(updatedAccount);
     }
-    
-    @PutMapping("/{id}/set-default") 
+
+    @PutMapping("/{id}/set-default")
     public ResponseEntity<Account> setDefaultAccount(@PathVariable Long id) {
         Account updatedAccount = accountService.setDefaultAccount(id);
-        return ResponseEntity.ok(updatedAccount); 
+        return ResponseEntity.ok(updatedAccount);
     }
 
     @DeleteMapping("/{id}")
@@ -74,10 +74,10 @@ public class AccountController {
         boolean isHardDeleted = accountService.deleteAccount(id);
         return ResponseEntity.ok(isHardDeleted);
     }
-    
-    @PutMapping("/{id}/set-active") 
+
+    @PutMapping("/{id}/set-active")
     public ResponseEntity<Account> setActiveAccount(@PathVariable Long id) {
         Account updatedAccount = accountService.setActiveAccount(id);
-        return ResponseEntity.ok(updatedAccount); 
+        return ResponseEntity.ok(updatedAccount);
     }
 }

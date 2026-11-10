@@ -1,0 +1,17 @@
+.data-item {
+  align-items: stretch;
+
+  .item-actions {
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.375rem;
+
+    div {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 0.375rem;
+    }
+  }
+}

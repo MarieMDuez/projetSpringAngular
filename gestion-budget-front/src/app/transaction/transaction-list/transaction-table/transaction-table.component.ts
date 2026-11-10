@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TransactionService } from '../../transaction.service';
 
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -8,27 +8,36 @@ import { AccountService } from '../../../settings/account/account.service';
 import { CategoryService } from '../../../settings/category/category.service';
 import { PaymentMethodService } from '../../../settings/payment-method/payment-method.service';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
+import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
+import { ModalComponent } from '../../../shared/modal/modal.component';
 import { FindByIdPipe } from '../../../shared/pipes/find-by-id-pipe';
 import { Transaction } from '../../transaction.model';
 
 @Component({
   selector: 'app-transaction-table',
-  imports: [ReactiveFormsModule, FindByIdPipe, CommonModule, DatePipe, ScrollingModule],
+  imports: [
+    ReactiveFormsModule,
+    FindByIdPipe,
+    CommonModule,
+    DatePipe,
+    ScrollingModule,
+    ModalComponent,
+    OpenDialogDirective,
+  ],
   templateUrl: './transaction-table.component.html',
   styleUrl: './transaction-table.component.scss',
 })
-export class TransactionTableComponent implements OnInit {
+export class TransactionTableComponent {
   protected transactionService = inject(TransactionService);
   protected accountService = inject(AccountService);
   protected categoryService = inject(CategoryService);
   protected paymentMethodService = inject(PaymentMethodService);
-  private toastService = inject(ToastService);
+  private readonly toastService = inject(ToastService);
 
   protected accounts = this.accountService.allAccounts;
   protected categories = this.categoryService.allCategories;
   protected paymentMethods = this.paymentMethodService.allPaymentMethods;
-
-  ngOnInit(): void {}
+  protected transactionToDelete = signal<Transaction | null>(null);
 
   protected trackByTransactionId(index: number, transaction: Transaction): number {
     if (transaction?.id) {
@@ -51,17 +60,19 @@ export class TransactionTableComponent implements OnInit {
     }
   }
 
-  protected onDeleteTransaction(id: number | undefined): void {
-    if (!id) return;
-
-    if (confirm('Voulez-vous vraiment supprimer définitivement cette transaction ?')) {
-      this.transactionService.deleteTransaction(id).subscribe({
+  protected deleteTransaction(action: 'confirm' | 'cancel'): void {
+    const tx = this.transactionToDelete();
+    if (!tx?.id) return;
+    if (action === 'confirm') {
+      this.transactionService.deleteTransaction(tx.id).subscribe({
         next: () => {
           this.toastService.show('Transaction supprimée avec succès !', 'success');
         },
         error: (err) =>
           this.toastService.show('Une erreur est survenue lors de la suppression', 'error'),
       });
+    } else {
+      this.transactionToDelete.set(null);
     }
   }
 

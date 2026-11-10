@@ -1,0 +1,58 @@
+<div class="projectedBudgetSettings-list-container">
+    <app-projected-budget-settings-form></app-projected-budget-settings-form>
+
+    <div class="data-list">
+        @for (setting of projectedBudgetSettings(); track setting.id) {
+        <div class="data-item">
+
+            <div class="item-info">
+                <span class="item-name">
+                    @if (categoryService.allCategories() | findById: setting.category?.id; as category)
+                    {
+                    <span>
+                        {{ category.label }}
+                        @if (!category.isActive) { <span class="badge-archived">(Archivé)</span> }
+                    </span>
+                    } @else {
+                    <span class="text-muted">—</span>
+                    }
+                    ->
+                    {{projectedBudgetCategoryTypeLabels[setting.type] }}
+                </span>
+            </div>
+
+            <div class="item-actions">
+
+                <button type="button" class="btn-icon" (click)="onEdit(setting)" title="Modifier">✏️</button>
+                <button type="button" class="btn-icon" [appOpenDialog]="deleteProjectedBudgetSettingsModal"
+                    (click)="projectedBudgetSettingsToDelete.set(setting)" title="Supprimer le mapping">🗑️</button>
+            </div>
+
+        </div>
+        } @empty {
+        <p class="text-muted text-small">Aucun compte disponible pour le moment.</p>
+        }
+    </div>
+</div>
+
+
+<app-modal #deleteProjectedBudgetSettingsModal title="Suppression de mapping" options="accept-reject" type="danger"
+    confirmText="Confirmer" cancelText="Annuler" (resultAction)="onConfirmDeleteAction($event)">
+
+    @if (projectedBudgetSettingsToDelete(); as projectedBudgetSettings) {
+    <p>
+        Êtes-vous sûr de vouloir supprimer le mapping <strong> @if (categoryService.allCategories() | findById:
+            projectedBudgetSettings.category?.id; as category)
+            {
+            <span>
+                {{ category.label }}
+                @if (!category.isActive) { <span class="badge-archived">(Archivé)</span> }
+            </span>
+            } @else {
+            <span class="text-muted">—</span>
+            }
+            ->
+            {{projectedBudgetCategoryTypeLabels[projectedBudgetSettings.type] }}</strong> ?
+    </p>
+    }
+</app-modal>

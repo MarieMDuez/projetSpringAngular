@@ -2,21 +2,25 @@ package com.gestionCompte.apirest.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionCompte.apirest.exception.ErrorMessages;
+import com.gestionCompte.apirest.exception.ResourceBadRequestException;
+import com.gestionCompte.apirest.exception.ResourceNotFoundException;
+import com.gestionCompte.apirest.model.AccountType;
 import com.gestionCompte.apirest.model.Transaction;
 import com.gestionCompte.apirest.model.TransactionType;
 import com.gestionCompte.apirest.repository.TransactionRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,12 +37,12 @@ public class TransactionService {
 
 	public Transaction getTransactionById(Long id) {
 		return transactionRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + id));
+				() -> new ResourceNotFoundException(ErrorMessages.TRANSACTION_NOT_FOUND + id));
 	}
 
 	public List<Transaction> getFilteredTransactions(Long accountId, Long categoryId, Long paymentMethodId, Integer day,
 			Integer month, Integer year, BigDecimal minAmount, BigDecimal maxAmount, String type, Boolean isChecked,
-			Integer recurrenceMonths, Integer limit) {
+			Integer recurrenceMonths, Integer limit, AccountType accountType) {
 
 		Specification<Transaction> spec = (root, query, cb) -> {
 			var predicate = cb.conjunction();
@@ -55,6 +59,10 @@ public class TransactionService {
 				predicate = cb.and(predicate, cb.equal(root.get("account").get("id"), accountId));
 			}
 
+			if (accountType != null) {
+				predicate = cb.and(predicate, cb.equal(root.get("account").get("type"), accountType));
+			}
+
 			if (categoryId != null) {
 				predicate = cb.and(predicate, cb.equal(root.get("category").get("id"), categoryId));
 			}
@@ -64,7 +72,7 @@ public class TransactionService {
 			}
 
 			if (year != null || month != null || day != null) {
-				int startYear = (year != null) ? year : LocalDate.now().getYear();
+				int startYear = (year != null) ? year : LocalDate.now(ZoneId.systemDefault()).getYear();
 				int startMonth = (month != null) ? month : 1;
 				int startDay = (day != null) ? day : 1;
 
@@ -72,14 +80,11 @@ public class TransactionService {
 				LocalDate endDate;
 
 				if (day != null) {
-					// Si on a le jour précis, la borne de début et de fin est la même journée
 					endDate = startDate;
 				} else if (month != null) {
-					// Si on a le mois, on cherche jusqu'au dernier jour de ce mois précis
 					endDate = startDate.with(TemporalAdjusters.lastDayOfMonth());
 				} else {
-					// Si on a juste l'année, on cherche jusqu'au 31 décembre
-					endDate = LocalDate.of(startYear, 12, 31);
+					endDate = LocalDate.of(startYear, Month.DECEMBER, 31);
 				}
 
 				predicate = cb.and(predicate, cb.between(root.get("emissionDate"), startDate, endDate));
@@ -95,8 +100,7 @@ public class TransactionService {
 
 					predicate = cb.and(predicate, cb.equal(root.get("type"), typeEnum));
 				} catch (IllegalArgumentException e) {
-					log.error("Type de transaction invalide fourni : {}", type);
-					throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Type de transaction invalide : " + type);
+					throw new ResourceBadRequestException(ErrorMessages.TRANSACTION_BAD_REQUEST + type);
 				}
 			}
 			if (isChecked != null) {
@@ -121,7 +125,7 @@ public class TransactionService {
 
 	public Transaction updateTransaction(Long id, Transaction transactionDetails) {
 		Transaction existingTransaction = transactionRepository.findById(id).orElseThrow(
-				() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + id));
+				() -> new ResourceNotFoundException(ErrorMessages.TRANSACTION_NOT_FOUND + id));
 
 		existingTransaction.setDescription(transactionDetails.getDescription());
 		existingTransaction.setAmount(transactionDetails.getAmount());
@@ -131,7 +135,6 @@ public class TransactionService {
 
 		existingTransaction.setRecurrenceMonths(transactionDetails.getRecurrenceMonths());
 		existingTransaction.setAlertTriggered(transactionDetails.isAlertTriggered());
-
 		existingTransaction.setAccount(transactionDetails.getAccount());
 		existingTransaction.setCategory(transactionDetails.getCategory());
 		existingTransaction.setPaymentMethod(transactionDetails.getPaymentMethod());
@@ -141,7 +144,7 @@ public class TransactionService {
 
 	public void deleteTransaction(Long id) {
 		if (!transactionRepository.existsById(id)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + id);
+			throw new ResourceNotFoundException(ErrorMessages.TRANSACTION_NOT_FOUND + id);
 		}
 		transactionRepository.deleteById(id);
 	}
@@ -171,7 +174,7 @@ public class TransactionService {
 				if (dateTransaction.getMonthValue() == expectedParentMonth
 						&& dateTransaction.getYear() == expedtedParentYear) {
 
-					int targetDay = dateTransaction.getDayOfMonth(); 
+					int targetDay = dateTransaction.getDayOfMonth();
 					int maxDayInMonth = LocalDate.of(targetYear, targetMonth, 1).lengthOfMonth();
 					int safeDay = Math.min(targetDay, maxDayInMonth);
 

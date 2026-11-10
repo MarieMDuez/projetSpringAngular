@@ -16,5 +16,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
 	@Query("SELECT DISTINCT t.recurrenceMonths FROM Transaction t ORDER BY t.recurrenceMonths ASC")
 	List<Integer> findDistinctRecurrenceMonths();
 	List<Transaction> findByRecurrenceMonthsGreaterThan(Integer rec);
+	List<Transaction> findByAccountIdAndRecurrenceMonthsGreaterThan(Long accountId, int rec);
 	boolean existsByParentTransactionIdAndEmissionDate(Long parentId, LocalDate date);
 }

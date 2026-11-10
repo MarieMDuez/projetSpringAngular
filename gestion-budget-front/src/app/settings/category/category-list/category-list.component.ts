@@ -1,5 +1,5 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ToastService } from '../../../shared/ConfirmationToast/toast.service';
 import { OpenDialogDirective } from '../../../shared/directives/open-dialog.directive';
 import { ModalComponent } from '../../../shared/modal/modal.component';
@@ -12,17 +12,15 @@ import { CategoryService } from '../category.service';
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',
 })
-export class CategoryListComponent implements OnInit {
+export class CategoryListComponent {
   protected categoryService = inject(CategoryService);
-  private toastService = inject(ToastService);
+  private readonly toastService = inject(ToastService);
 
   protected categories = this.categoryService.allCategories;
 
   protected selectedCategory = signal<Category | null>(null);
   protected categoryToDelete = signal<Category | null>(null);
   protected categoryToSetActive = signal<Category | null>(null);
-
-  ngOnInit(): void {}
 
   protected onDelete(category: Category): void {
     if (!category.id) return;
@@ -100,5 +98,38 @@ export class CategoryListComponent implements OnInit {
     } else {
       this.categoryToSetActive.set(null);
     }
+  }
+
+  moveUp(cat: Category) {
+    const listeModifiable = [...this.categories()];
+
+    const idx = this.categories().findIndex((item) => item.id === cat.id);
+    if (idx <= 0) return;
+
+    const currentItem = listeModifiable[idx];
+    const previousItem = listeModifiable[idx - 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx - 1] = { ...currentItem, position: previousItem.position };
+    listeModifiable[idx] = { ...previousItem, position: currentPosition };
+
+    this.categoryService.saveAll(listeModifiable).subscribe();
+  }
+  moveDown(cat: Category) {
+    const listeModifiable = [...this.categories()];
+
+    const idx = this.categories().findIndex((item) => item.id === cat.id);
+    if (idx === -1 || idx >= listeModifiable.length - 1) return;
+
+    const currentItem = listeModifiable[idx];
+    const nextItem = listeModifiable[idx + 1];
+
+    const currentPosition = currentItem.position;
+
+    listeModifiable[idx] = { ...nextItem, position: nextItem.position };
+    listeModifiable[idx + 1] = { ...currentItem, position: currentPosition };
+
+    this.categoryService.saveAll(listeModifiable).subscribe();
   }
 }

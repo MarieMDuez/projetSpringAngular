@@ -11,8 +11,12 @@
         <div class="col-pointed text-center">Pointée</div>
         <div class="col-actions text-center">Actions</div>
     </div>
-
-    <cdk-virtual-scroll-viewport itemSize="45" class="transactions-viewport">
+    @if (transactionService.filteredTransactionsSignal().length === 0) {
+    <div class="empty-state text-muted text-center">
+        Aucune transaction pour le moment.
+    </div>
+    }
+    <cdk-virtual-scroll-viewport itemSize="50" class="transactions-viewport">
 
         <div *cdkVirtualFor="let transaction of transactionService.filteredTransactionsSignal(); trackBy: trackByTransactionId"
             class="table-virtual-row" [class.row-checked]="transaction.isChecked">
@@ -83,14 +87,15 @@
             </div>
 
             <div class="col-pointed text-center">
-                <input type="checkbox" [checked]="transaction.isChecked" (change)="onToggleCheck(transaction)"
-                    class="checkbox-pointer" title="Pointer la transaction">
+                <input type="checkbox" id="isChecked" [checked]="transaction.isChecked"
+                    (change)="onToggleCheck(transaction)" class="checkbox-pointer" aria-label="Pointer la transaction"
+                    title="Pointer la transaction">
             </div>
 
             <div class="col-actions text-center">
                 <button type="button" class="btn-icon" (click)="onEdit(transaction)" title="Modifier">✏️</button>
-                <button type="button" class="btn-icon" (click)="onDeleteTransaction(transaction.id)"
-                    title="Supprimer">🗑️</button>
+                <button type="button" class="btn-icon" [appOpenDialog]="deleteTransactionModal"
+                    (click)="transactionToDelete.set(transaction)" title="Supprimer">🗑️</button>
             </div>
 
         </div>
@@ -98,8 +103,14 @@
     </cdk-virtual-scroll-viewport>
 </div>
 
-@if (transactionService.filteredTransactionsSignal().length === 0) {
-<div class="empty-state text-muted text-center" style="padding: 2rem;">
-    Aucune transaction pour le moment.
-</div>
-}
+
+
+
+<app-modal #deleteTransactionModal title="Suppression de budget" options="accept-reject" type="danger"
+    confirmText="Confirmer" cancelText="Annuler" (resultAction)="deleteTransaction($event)">
+    @if (transactionToDelete(); as Transaction) {
+    <p>
+        Êtes-vous sûr de vouloir supprimer cette transaction ?
+    </p>
+    }
+</app-modal>

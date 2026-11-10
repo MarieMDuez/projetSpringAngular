@@ -7,7 +7,7 @@ import { Component, ElementRef, viewChild, input, output } from '@angular/core';
   styleUrls: ['./modal.component.scss'],
 })
 export class ModalComponent {
-  title = input<string>(''); // Devient optionnel si options === 'empty'
+  title = input<string>('');
   options = input<'accept-reject' | 'close-only' | 'empty'>('accept-reject');
   confirmText = input<string>('Confirmer');
   cancelText = input<string>('Annuler');

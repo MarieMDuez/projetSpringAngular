@@ -1,12 +1,22 @@
+@use 'mixins' as *;
+
 .actions-clear-wrapper {
   height: 36px;
-  display: flex;
-  align-items: center;
+  @include flex-align(flex-start, center);
+
+  @include respond-to('desktop') {
+    justify-content: flex-end;
+    margin: 0.5rem 0;
+  }
 }
 
 .btn-danger-action {
-  color: #ef4444;
+  color: var(--error);
   white-space: nowrap;
+  background: none;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .text-center {
@@ -14,22 +24,57 @@
 }
 
 .date-filter-group {
-  display: flex;
+  @include flex-align(flex-start, stretch, 0.25rem);
   flex-direction: column;
-  gap: 0.25rem;
 }
 
 .select-limit {
   width: 160px;
   height: 34px;
+
+  @include respond-to('desktop') {
+    width: 100%;
+  }
 }
 
 .form-group-tracker {
-  &.col-date       { width: 11%; min-width: 11%; }
-  &.col-account    { width: 12%; min-width: 12%; }
-  &.col-payment    { width: 12%; min-width: 12%; }
-  &.col-category   { width: 18%; min-width: 12%; } 
-  &.col-flux       { width: 18%; min-width: 18%; }
-  &.col-recurrence { width: 8%;  min-width: 8%;  }
-  &.col-pointing   { width: 5%;  min-width: 5%;  }
+  &.col-date {
+    width: 11%;
+    min-width: 110px;
+  }
+  &.col-account {
+    width: 12%;
+    min-width: 120px;
+  }
+  &.col-payment {
+    width: 12%;
+    min-width: 120px;
+  }
+  &.col-category {
+    width: 18%;
+    min-width: 140px;
+  }
+  &.col-flux {
+    width: 18%;
+    min-width: 140px;
+  }
+  &.col-recurrence {
+    width: 8%;
+    min-width: 90px;
+  }
+  &.col-pointing {
+    width: 5%;
+    min-width: 70px;
+  }
+
+  @include respond-to('desktop') {
+    width: 100%;
+    min-width: 0;
+
+    input,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
 }

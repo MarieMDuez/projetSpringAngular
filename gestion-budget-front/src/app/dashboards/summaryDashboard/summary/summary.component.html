@@ -27,16 +27,16 @@
         <h3>{{ compte.label }}</h3>
 
         <div class="account-row">
-            <span style="color: #166534; font-weight: 600;">Réel :</span>
-            <span class="tabular-nums" style="color: #15803d; font-weight: 700;">
-                {{ compte.currentBalance | currency:'EUR' }}
+            <span class="real">Réel :</span>
+            <span class="real">
+                {{ compte.currentBalance| currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
             </span>
         </div>
 
         <div class="account-row">
-            <span style="color: #5b21b6; font-weight: 600;">Prévisionnel :</span>
-            <span class="tabular-nums" style="color: #6d28d9; font-weight: 700;">
-                {{ compte.projectedBalance | currency:'EUR' }}
+            <span class="projected">Prévisionnel :</span>
+            <span class="projected">
+                {{ compte.projectedBalance| currency:'EUR':'symbol':'1.2-2':'fr-FR' }}
             </span>
         </div>
     </div>

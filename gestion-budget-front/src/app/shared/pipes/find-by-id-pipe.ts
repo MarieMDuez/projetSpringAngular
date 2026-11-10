@@ -10,6 +10,6 @@ interface Identifiable {
 export class FindByIdPipe implements PipeTransform {
   transform<T extends Identifiable>(items: T[] | null, id: number | undefined): T | null {
     if (!items || id === undefined) return null;
-    return items.find((item) => item.id === id) || null;
+    return items.find((item) => item.id === id) ?? null;
   }
 }

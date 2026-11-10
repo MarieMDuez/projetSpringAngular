@@ -9,15 +9,13 @@ import { Transaction, TransactionFilters } from './transaction.model';
   providedIn: 'root',
 })
 export class TransactionService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/transactions`;
-  private accountService = inject(AccountService);
-  private dashboardService = inject(DashboardService);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/transactions`;
+  private readonly accountService = inject(AccountService);
+  private readonly dashboardService = inject(DashboardService);
   public allTransactionsSignal = signal<Transaction[]>([]);
 
   public transactionToEdit = signal<Transaction | null>(null);
-
-  public selectedAccountIdFilter = signal<number | null>(null);
 
   public filteredTransactionsSignal = signal<Transaction[]>([]);
   public recurrenceFilter = signal<number | null>(null);
@@ -25,38 +23,45 @@ export class TransactionService {
   public loadAllTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>(this.apiUrl).pipe(
       tap((data) => {
-        this.allTransactionsSignal.set(data); // Bloque les vrais soldes réels
+        this.allTransactionsSignal.set(data);
       }),
       concatMap((data) => {
         const defaultAccount = this.accountService
           .allAccounts()
           .find((acc) => acc.isDefault === true && acc.isActive);
 
-        if (defaultAccount && defaultAccount.id) {
-          this.selectedAccountIdFilter.set(defaultAccount.id);
+        if (defaultAccount?.id) {
+          this.dashboardService.selectedAccountId.set(defaultAccount.id);
           return this.dashboardService
-            .loadBalances(defaultAccount.id)
+            .loadBalances()
             .pipe(concatMap(() => this.loadFilteredTransactions({ accountId: defaultAccount.id })));
         } else {
-          this.filteredTransactionsSignal.set(data); // Initialise le tableau au démarrage
-          return this.dashboardService.loadBalances(null).pipe(map(() => data));
+          this.filteredTransactionsSignal.set(data);
+          return this.dashboardService.loadBalances().pipe(map(() => data));
         }
       }),
+    );
+  }
+
+  private insertInOrder(newTx: Transaction, list: Transaction[]): Transaction[] {
+    const updatedList = [...list, newTx];
+    return updatedList.sort(
+      (a, b) => new Date(b.emissionDate).getTime() - new Date(a.emissionDate).getTime(),
     );
   }
 
   public createTransaction(transaction: Transaction): Observable<unknown> {
     return this.http.post<Transaction>(this.apiUrl, transaction).pipe(
       tap((createdTx) => {
-        this.allTransactionsSignal.update((currentList) => [createdTx, ...currentList]);
-        this.filteredTransactionsSignal.update((currentList) => [createdTx, ...currentList]);
+        this.allTransactionsSignal.update((currentList) =>
+          this.insertInOrder(createdTx, currentList),
+        );
+        this.filteredTransactionsSignal.update((currentList) =>
+          this.insertInOrder(createdTx, currentList),
+        );
       }),
       concatMap(() => {
-        const currentAccountId = this.selectedAccountIdFilter();
-        return forkJoin([
-          this.dashboardService.loadBalances(currentAccountId),
-          this.loadUniqueRecurrences(),
-        ]);
+        return forkJoin([this.dashboardService.loadBalances(), this.loadUniqueRecurrences()]);
       }),
     );
   }
@@ -82,8 +87,7 @@ export class TransactionService {
         );
       }),
       concatMap((result) => {
-        const currentAccountId = this.selectedAccountIdFilter();
-        return this.dashboardService.loadBalances(currentAccountId).pipe(map(() => result));
+        return this.dashboardService.loadBalances().pipe(map(() => result));
       }),
     );
   }
@@ -95,11 +99,7 @@ export class TransactionService {
         this.filteredTransactionsSignal.update((current) => current.filter((tx) => tx.id !== id));
       }),
       concatMap(() => {
-        const currentAccountId = this.selectedAccountIdFilter();
-        return forkJoin([
-          this.loadUniqueRecurrences(),
-          this.dashboardService.loadBalances(currentAccountId),
-        ]);
+        return forkJoin([this.loadUniqueRecurrences(), this.dashboardService.loadBalances()]);
       }),
     );
   }

@@ -1,0 +1,36 @@
+<aside class="toolbox-aside">
+    <h3 class="toolbox-title">Boîte à suggestions</h3>
+    <p class="toolbox-subtitle">Glissez-déposez ou cliquez sur une transaction récurrente pour l'ajouter à votre budget.
+    </p>
+
+    <div class="suggestions-list" id="toolbox-list" cdkDropList [cdkDropListData]="budgetService.toolboxTransactions()"
+        [cdkDropListConnectedTo]="['incomes-list', 'savings-list', 'fixedExpenses-list', 'variableExpenses-list']">
+        @for (tx of suggestions(); track tx.id) {
+        <div class="suggestion-card" [attr.data-category]="tx.category" cdkDrag [cdkDragData]="tx"
+            cdkDragPreviewContainer="parent" cdkDragBoundary=".general-container">
+            <div class="suggestion-info">
+                <span class="suggestion-label">{{ tx.paymentMethod.label }}</span>
+                <span class="suggestion-badge">{{ tx.category.label }}</span>
+            </div>
+            <span class="suggestion-amount">{{ tx.amount| currency:'EUR':'symbol':'1.2-2':'fr-FR' }}</span>
+            <div class="action-dropdown">
+                <select (change)="onSelectCategory($event, tx); $any($event.target).value = ''"
+                    aria-label="Sélectionner la section budgétaire de destination">
+                    <option value="" selected disabled> Ajouter... </option>
+                    <option value="INCOME">➕ Aux Revenus</option>
+                    <option value="SAVINGS">💼 À l'Épargne</option>
+                    <option value="FIXED_EXPENSE">📌 Aux Charges Fixes</option>
+                    <option value="VARIABLE_EXPENSE">🛒 Aux Charges Variables</option>
+                </select>
+            </div>
+        </div>
+        } @empty {
+        <div class="toolbox-empty">
+            <p>Aucune suggestion pour ce mois ou le budget a déjà été entièrement configuré.</p>
+            <button class="btn-secondary" type="button" (click)="onGenerateSuggestion()">
+                Générer les suggestions
+            </button>
+        </div>
+        }
+    </div>
+</aside>

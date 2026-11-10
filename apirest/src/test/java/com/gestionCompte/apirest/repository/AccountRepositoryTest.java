@@ -13,6 +13,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import com.gestionCompte.apirest.model.Account;
+import com.gestionCompte.apirest.model.AccountType;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) 
@@ -25,12 +26,13 @@ public class AccountRepositoryTest {
     private TestEntityManager entityManager;
 
     @Test
-    public void should_find_default_account_when_it_exists() {
+    void should_find_default_account_when_it_exists() {
         Optional<Account> existingDefault = accountRepository.findByIsDefaultTrue();
         
         if (existingDefault.isEmpty()) {
             Account account = new Account();
             account.setLabel("Compte de Test");
+            account.setType(AccountType.COURANT);
             account.setInitialBalance(new BigDecimal("2500.00"));
             account.setActive(true);
             account.setDefault(true);
@@ -48,9 +50,10 @@ public class AccountRepositoryTest {
 
 
     @Test
-    public void should_return_only_active_accounts() {
+    void should_return_only_active_accounts() {
         Account activeAcc = new Account();
         activeAcc.setLabel("Compte Spécifique Test Actif");
+        activeAcc.setType(AccountType.COURANT);
         activeAcc.setInitialBalance(new BigDecimal("500.00"));
         activeAcc.setActive(true);
         activeAcc.setDefault(false);

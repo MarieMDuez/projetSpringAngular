@@ -5,9 +5,19 @@
         <label for="accountLabel">Nom du compte</label>
         <input id="accountLabel" type="text" formControlName="label" placeholder="Ex: Compte Courant, Livret A..."
             autofocus>
-        @if (accountForm.get('label')?.touched && accountForm.get('label')?.invalid) {
+        @if (accountForm.get('label')?.dirty && accountForm.get('label')?.invalid) {
         <small class="error-text">Obligatoire (3 car. min)</small>
         }
+    </div>
+    <div class="form-group">
+        <label for="accountType">Type du compte</label>
+        <select id="accountType" formControlName="type">
+            @for (type of accountTypes; track type) {
+            <option [value]="type">
+                {{ accountTypeLabels[type] }}
+            </option>
+            }
+        </select>
     </div>
 
     <div class="form-group">

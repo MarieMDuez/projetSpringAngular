@@ -1,10 +1,11 @@
 package com.gestionCompte.apirest.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -20,8 +21,8 @@ public class MatrixMonthlyDashboardDto {
     @AllArgsConstructor
     public static class PaymentMethodRowDto {
         private String paymentMethodLabel;
-        private BigDecimal[] weeklyAmounts; 
-        private BigDecimal totalMonth;     
+        private BigDecimal[] weeklyAmounts;
+        private BigDecimal totalMonth;
         private List<CategoryRowDto> categoryRows;
     }
 
@@ -30,7 +31,7 @@ public class MatrixMonthlyDashboardDto {
     @AllArgsConstructor
     public static class CategoryRowDto {
         private String categoryLabel;
-        private BigDecimal[] weeklyAmounts; 
-        private BigDecimal totalMonth;     
+        private BigDecimal[] weeklyAmounts;
+        private BigDecimal totalMonth;
     }
 }
